@@ -26,13 +26,15 @@ jobs:
       - name: Build with dotnet
         run: dotnet build --configuration Release
 
-      -  name: dotnet publish
-        run: dotnet publish PowerGuard.sln -c Release -o ${{env.DOTNET_ROOT}}/myapp
+      - name: dotnet publish
+        # نقوم بتحديد مشروع الـ WebApi تحديداً
+        run: dotnet publish PowerGuard.WebApi/PowerGuard.WebApi.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
+          # التأكد من رفع المجلد الذي يحتوي على نتاج الـ publish
           path: ${{env.DOTNET_ROOT}}/myapp
 
   deploy:
@@ -64,6 +66,7 @@ jobs:
           package: .
 
           
+
 
 
 
