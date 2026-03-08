@@ -141,7 +141,7 @@ namespace PowerGuard.WebApi.Controllers
                 return BadRequest(result.Message);
             }
 
-            return Ok(result);
+            return Ok(result.Message);
         }
 
         [HttpPost("verify-otp")]
@@ -167,7 +167,7 @@ namespace PowerGuard.WebApi.Controllers
                 return BadRequest(result.Message);
             }
 
-            return Ok(result);
+            return Ok(result.Message);
         }
 
         private void SetRefreshTokenInCookie(string refreshToken, DateTime ExpiresOn)
