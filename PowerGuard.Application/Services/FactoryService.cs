@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using PowerGuard.Application.Dtos;
 using PowerGuard.Application.Helpers;
 using PowerGuard.Application.Interfaces;
+using PowerGuard.Domain.Enums;
 using PowerGuard.Domain.Interfaces;
 using PowerGuard.Domain.Models;
 using System;
@@ -42,22 +44,69 @@ namespace PowerGuard.Application.Services
             return Result<CreateFactoryDto>.Failure("Failed to save the factory to the database.");
         }
 
-        public Task<Result<bool>> DeleteFactory(int id)
+        public async Task<Result<bool>> DeleteFactory(int id)
         {
-            throw new NotImplementedException();
+            var factory = await _unitOfWork.Factories.Query.Include(f => f.Manager)
+                .Include(f => f.Departments)
+                .ThenInclude(d => d.Manager)
+                .FirstOrDefaultAsync(f => f.Id == id);
+
+            if (factory is null )
+            {
+                return Result<bool>.Failure("Factory not found.",404);
+            }
+
+            factory.Status = FactoryStatus.Deactivated;
+             _unitOfWork.Factories.Update(factory);
+            //تعطيل مدير المصنع
+            if (factory.Manager != null)
+            {
+                factory.Manager.LockoutEnd = DateTimeOffset.MaxValue; // قفل الحساب
+            }
+
+            // تعطيل مديري الأقسام
+            foreach (var dept in factory.Departments)
+            {
+                if (dept.Manager != null)
+                {
+                    dept.Manager.LockoutEnd = DateTimeOffset.MaxValue;
+                }
+            }
+
+            var result = await _unitOfWork.SaveChangesAsync();
+
+            if (result > 0)
+            {
+                return Result<bool>.Success(true);
+            }
+
+            return Result<bool>.Failure("Failed to deactivate the factory in the database.");
+
+        }
+
+        public async Task<Result<List<FactoryDto>>> GetActiveFactories()
+        {
+            var activeFactories =await  _unitOfWork.Factories.Query.Include(f => f.Departments).Where(f => f.Status == FactoryStatus.Approved).ToListAsync();
+
+            var activeFactoryDtos = _mapper.Map<List<FactoryDto>>(activeFactories);
+
+            return Result<List<FactoryDto>>.Success(activeFactoryDtos);
         }
 
         public async Task<Result<List<FactoryDto>>> GetAllFactories()
         {
-            var factories = await _unitOfWork.Factories.GetAll().Result;
-            throw new NotImplementedException();
+            var factories = await _unitOfWork.Factories.Query.Include(f=>f.Departments).ToListAsync();
+
+            var factoryDtos = _mapper.Map<List<FactoryDto>>(factories);
+
+            return Result<List<FactoryDto>>.Success(factoryDtos);
         }
 
         public async Task<Result<FactoryDto>> GetFactoryById(int id)
         {
-            var factory = await _unitOfWork.Factories.GetByIdAsync(id);
+            var factory = await _unitOfWork.Factories.Query.Include(f=>f.Departments).FirstOrDefaultAsync(f => f.Id == id);
 
-            if(factory is null)
+            if (factory is null)
             {
                 return Result<FactoryDto>.Failure("Factory not found.");
             }
@@ -67,9 +116,68 @@ namespace PowerGuard.Application.Services
             return Result<FactoryDto>.Success(factoryDto);
         }
 
-        public Task<Result<FactoryDto>> UpdateFactory(int id, UpdateFactoryDto dto)
+        public async Task<Result<List<FactoryDetailsDto>>> GetPendingFactories()
         {
-            throw new NotImplementedException();
+            var pendingFactories =await  _unitOfWork.Factories.Query.Include(f => f.Manager).Where(f => f.Status == FactoryStatus.Pending).ToListAsync();
+
+            var pendingFactoryDtos = _mapper.Map<List<FactoryDetailsDto>>(pendingFactories);
+
+            return Result<List<FactoryDetailsDto>>.Success(pendingFactoryDtos);
+        }
+
+        public async Task<Result<bool>> UpdateConsumptionLimit(int factoryId, UpdateConsumptionLimitDto dto,string userId)
+        {
+            var factory = await _unitOfWork.Factories.GetByIdAsync(factoryId);
+
+            if (factory is null)
+            {
+                return Result<bool>.Failure("Factory not found.",404);
+            }
+
+            factory.CurrentConsumptionLimit = dto.NewLimit;
+            
+            var limitHistory = new LimitHistory
+            {
+                FactoryId = factoryId,
+                LimitValue = (decimal)factory.CurrentConsumptionLimit,
+                CreatedAt = DateTime.UtcNow,
+                ActiveFrom = DateTime.UtcNow,
+                SetBy=userId
+            };
+
+            await _unitOfWork.LimitHistories.AddAsync(limitHistory);
+            var result = await _unitOfWork.SaveChangesAsync();
+
+            if (result > 0)
+            {
+                return Result<bool>.Success(true);
+            }
+
+            return Result<bool>.Failure("Failed to update the consumption limit in the database.");
+        }
+
+        
+
+        public async Task<Result<FactoryDto>> UpdateFactory(int id, UpdateFactoryDto dto)
+        {
+            var factory = await _unitOfWork.Factories.Query.Include(f => f.Departments).FirstOrDefaultAsync(f => f.Id == id);
+
+            if (factory is null)
+            {
+                return Result<FactoryDto>.Failure("Factory not found.",404);
+            }
+
+            _mapper.Map(dto, factory);
+            _unitOfWork.Factories.Update(factory);
+            var result = await _unitOfWork.SaveChangesAsync();
+
+            if (result > 0)
+            {
+                var factoryDto = _mapper.Map<FactoryDto>(factory);
+                return Result<FactoryDto>.Success(factoryDto);
+            }
+
+            return Result<FactoryDto>.Failure("Failed to update the factory in the database.");
         }
     }
 }

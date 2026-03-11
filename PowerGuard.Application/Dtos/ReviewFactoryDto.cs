@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace PowerGuard.Application.Dtos
 {
-    public class UpdateFactoryDto
+    public class ReviewFactoryDto
     {
         [Required]
-        public string Name { get; set; }
-        public string? Location { get; set; }
-        public string? Description { get; set; }
-        
+        public int FactoryId { get; set; }
 
+        [Required]
+        public bool IsApproved { get; set; }
+
+        public string AdminRemarks { get; set; }
     }
-    
 }

@@ -1,8 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using PowerGuard.Application.Dtos;
 using PowerGuard.Application.Interfaces;
+using PowerGuard.Domain.Enums;
 using PowerGuard.Domain.Interfaces;
 using PowerGuard.Domain.Models;
 using System;
@@ -38,6 +41,37 @@ namespace PowerGuard.Application.Services
             if(existUser is null || !await _userManager.CheckPasswordAsync(existUser, loginDto.Password))
             {
                 return new AuthResultDto { Message = "Invalid email or password" };
+            }
+
+            var userRole=(await _userManager.GetRolesAsync(existUser)).FirstOrDefault();
+            if (userRole == "FactoryManager")
+            {
+                var managedFactory = await _unitOfWork.Factories.Query.FirstOrDefaultAsync(f => f.ManagerId == existUser.Id);
+
+                if (managedFactory.Status == FactoryStatus.Pending)
+                {
+                    return new AuthResultDto { Message = "Your Request for factory creation is under review" };
+                }
+
+                else if (managedFactory.Status == FactoryStatus.Rejected || managedFactory.Status == FactoryStatus.Suspended || managedFactory.Status == FactoryStatus.Deactivated)
+                {
+                    return new AuthResultDto { Message = "You can't use our service as your factory is inactive currently" };
+                }
+
+            }
+
+            else if (userRole == "DepartmentManager")
+            {
+                var department = await _unitOfWork.Departments.Query.Include(d => d.Factory).FirstOrDefaultAsync(d => d.ManagerId == existUser.Id);
+
+                var Factory = department.Factory;
+
+                if (Factory.Status == FactoryStatus.Rejected || Factory.Status == FactoryStatus.Suspended || Factory.Status == FactoryStatus.Deactivated)
+                {
+                    return new AuthResultDto { Message = "You can't use our service as your factory is inactive currently" };
+                }
+
+            
             }
 
             var token=await _tokenService.GenerateToken(existUser);

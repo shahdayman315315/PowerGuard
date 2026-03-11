@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PowerGuard.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,15 @@ using System.Threading.Tasks;
 
 namespace PowerGuard.Application.Dtos
 {
-    internal class FactoryDto
+    public class FactoryDto
     {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string? Location { get; set; }
+        public string? Description { get; set; }
+        public decimal? CurrentConsumptionLimit { get; set; }
+        public FactoryStatus Status { get; set; }
+        public string? AdminRemarks { get; set; }
+        public int DepartmentsCount { get; set; }
     }
 }
