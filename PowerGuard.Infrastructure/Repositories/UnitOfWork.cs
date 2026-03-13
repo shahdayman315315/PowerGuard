@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using PowerGuard.Domain.Interfaces;
 using PowerGuard.Domain.Models;
 using PowerGuard.Infrastructure.Data;
@@ -62,6 +63,11 @@ namespace PowerGuard.Infrastructure.Repositories
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             return await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.Database.BeginTransactionAsync(cancellationToken);
         }
     }
 }

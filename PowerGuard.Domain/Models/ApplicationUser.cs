@@ -10,6 +10,8 @@ namespace PowerGuard.Domain.Models
 {
     public class ApplicationUser: IdentityUser
     {
+        public int? FactoryId { get; set; }
+        public Factory? Factory { get; set; }
         public  ICollection<Factory> ManagedFactories { get; set; } = new List<Factory>();
         public  ICollection<Department> ManagedDepartments { get; set; } = new List<Department>();
         public  ICollection<Notification> Notifications { get; set; } = new List<Notification>();

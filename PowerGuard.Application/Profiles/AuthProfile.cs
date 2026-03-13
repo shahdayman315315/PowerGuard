@@ -14,6 +14,9 @@ namespace PowerGuard.Application.Profiles
         public AuthProfile()
         {
             CreateMap<RegisterDto, ApplicationUser>().ReverseMap();
+            CreateMap<RegisterManagerDto,ApplicationUser>().
+                ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.FullName))
+                .ForSourceMember(src => src.DepartmentId, opt => opt.DoNotValidate());
         }
     }
 }

@@ -96,6 +96,11 @@ namespace PowerGuard.Infrastructure.Data
                 .WithOne(otp => otp.User)
                 .HasForeignKey(otp => otp.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(u => u.Factory)
+                .WithMany() // المصنع عنده موظفين كتير
+                .HasForeignKey(u => u.FactoryId)
+                .OnDelete(DeleteBehavior.Restrict); // عشان لو مسحنا يوزر المصنع ميتأثرش
             });
 
 

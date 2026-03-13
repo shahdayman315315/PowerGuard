@@ -48,6 +48,11 @@ namespace PowerGuard.Application.Services
             {
                 var managedFactory = await _unitOfWork.Factories.Query.FirstOrDefaultAsync(f => f.ManagerId == existUser.Id);
 
+                if(managedFactory is null)
+                {
+                    return new AuthResultDto { Message = "No factory associated with this user" };
+                }
+
                 if (managedFactory.Status == FactoryStatus.Pending)
                 {
                     return new AuthResultDto { Message = "Your Request for factory creation is under review" };
@@ -96,7 +101,8 @@ namespace PowerGuard.Application.Services
                 RefreshTokenExpiration = refreshTokenEntity.ExpiresOn,
                 RefreshToken = refreshToken,
                 Role= (await _userManager.GetRolesAsync(existUser)).FirstOrDefault() ?? string.Empty,
-                IsSuccess = true
+                IsSuccess = true,
+                FactoryId = existUser.FactoryId??0
             };
         }
 
@@ -149,7 +155,8 @@ namespace PowerGuard.Application.Services
                 UserName = user.UserName,
                 RefreshToken = refreshToken,
                 RefreshTokenExpiration = refreshTokenEntity.ExpiresOn,
-                ExpirationDate = jwtToken.ValidTo
+                ExpirationDate = jwtToken.ValidTo,
+                FactoryId = user.FactoryId ?? 0
             };
 
         }
@@ -198,7 +205,8 @@ namespace PowerGuard.Application.Services
                 RefreshTokenExpiration = refreshTokenEntity.ExpiresOn,
                 RefreshToken = refreshToken,
                 Role= "FactoryManager",
-                IsSuccess = true
+                IsSuccess = true,
+                FactoryId = user.FactoryId ?? 0
             };
         }
 

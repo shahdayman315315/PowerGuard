@@ -47,7 +47,7 @@ namespace PowerGuard.Application.Services
                 new Claim(JwtRegisteredClaimNames.Email, user.Email!),
                 new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName ?? string.Empty),
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
-
+                new Claim("FactoryId", user.FactoryId?.ToString() ?? "")
             }.Union(userClaims)
              .Union(roleClaims);
 

@@ -1,4 +1,5 @@
-﻿using PowerGuard.Domain.Models;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using PowerGuard.Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,7 @@ namespace PowerGuard.Domain.Interfaces
         IBaseRepository<RefreshToken> RefreshTokens { get; }
         IBaseRepository<UserOTP> UserOTPs { get; }
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+        Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
 
     }
 }

@@ -23,7 +23,8 @@ namespace PowerGuard.Application.Dtos
 
         [Required]
         public string PhoneNumber { get; set; }= null!;
-        
+
+        public int? FactoryId { get; set; } // اختياري للأدمن، وإلزامي للباقي
 
     }
 }

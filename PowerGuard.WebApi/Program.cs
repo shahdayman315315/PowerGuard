@@ -32,16 +32,10 @@ namespace PowerGuard.WebApi
 
             }
             // Configure the HTTP request pipeline.
-<<<<<<< HEAD
                app.UseSwagger();
                 app.UseSwaggerUI();
             
-=======
-            
-                app.UseSwagger();
-                app.UseSwaggerUI();
-           
->>>>>>> e55ccc3c8664fa976b7eb08bb88b22fcefd98d30
+
 
             app.UseHttpsRedirection();
             app.UseAuthentication();
