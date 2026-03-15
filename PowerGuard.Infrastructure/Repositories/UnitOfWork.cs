@@ -69,5 +69,10 @@ namespace PowerGuard.Infrastructure.Repositories
         {
             return await _context.Database.BeginTransactionAsync(cancellationToken);
         }
+
+        public async Task<IExecutionStrategy> CreateExecutionStrategy(CancellationToken cancellationToken = default)
+        {
+            return  _context.Database.CreateExecutionStrategy();
+        }
     }
 }

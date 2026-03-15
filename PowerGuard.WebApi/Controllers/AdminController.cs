@@ -92,6 +92,21 @@ namespace PowerGuard.WebApi.Controllers
         }
 
 
+
+        [HttpPut("reactivate-factory/{id}")]
+        public async Task<IActionResult> ReactivateFactory(int id)
+        {
+            var result =await _adminService.ReactivateFactoryAsync(id);
+
+            if(!result.IsSuccess)
+            {
+                return BadRequest(result.Message);
+            }
+
+            return Ok(result.Message);
+        }
+
+
         [HttpDelete("delete-factory/{id}")]
         public async Task<IActionResult> DeleteFactory(int id)
         {

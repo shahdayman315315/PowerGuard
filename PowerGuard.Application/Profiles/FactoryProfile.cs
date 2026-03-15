@@ -17,7 +17,9 @@ namespace PowerGuard.Application.Profiles
             CreateMap<Factory, FactoryDto>()
                 .ForMember(dest => dest.DepartmentsCount,
                            opt => opt.MapFrom(src => src.Departments != null ? src.Departments.Count : 0));
-            CreateMap<Factory, UpdateFactoryDto>().ReverseMap();
+            CreateMap<UpdateFactoryDto,Factory >()
+                            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
             CreateMap<Factory, FactoryDetailsDto>()
                 .ForMember(dest => dest.ManagerName,
                            opt => opt.MapFrom(src => src.Manager.UserName))

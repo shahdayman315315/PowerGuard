@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PowerGuard.Application.Dtos;
 using PowerGuard.Application.Helpers;
@@ -17,11 +18,14 @@ namespace PowerGuard.Application.Services
     public class FactoryService : IFactoryService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
-        public FactoryService(IUnitOfWork unitOfWork , IMapper mapper)
+
+        public FactoryService(IUnitOfWork unitOfWork , IMapper mapper, UserManager<ApplicationUser> userManager)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
+            _userManager = userManager;
         }
         public async Task<Result<CreateFactoryDto>> CreateFactory(CreateFactoryDto dto,string userId)
         {
@@ -38,6 +42,16 @@ namespace PowerGuard.Application.Services
 
             if (result > 0)
             {
+                var manager = await _userManager.FindByIdAsync(userId);
+                manager.FactoryId = factory.Id;
+
+                var updateResult = await _userManager.UpdateAsync(manager);
+
+                if (!updateResult.Succeeded)
+                {
+                    return Result<CreateFactoryDto>.Failure("Error happened while setting the manager");
+                }
+
                 return Result<CreateFactoryDto>.Success(dto);
             }
 

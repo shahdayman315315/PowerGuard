@@ -10,11 +10,13 @@ namespace PowerGuard.Application.Interfaces
 {
     public interface IDepartmentService
     {
-        Task<Result<IEnumerable<ManagerDto>>> GetAvailableManagersAsync(int factoryId);
+        Task<Result<IEnumerable<ManagerDto>>> GetAvailableManagersAsync();
         Task<Result<CreateDepartmentDto>> CreateDepartmentAsync(CreateDepartmentDto dto);
         Task<Result<bool>> RegisterDepartmentManager(RegisterManagerDto dto);
         Task<Result<DepartmentDto>> GetByIdAsync(int id);
         Task<Result<IEnumerable<DepartmentDto>>> GetAllAsync(int? factoryId=null);
+        Task<Result<DepartmentDto>> UpdateAsync(UpdateDepartmentDto dto,int departmentId);
+        Task<Result<bool>> DeleteAsync(int id);
 
     }
 }

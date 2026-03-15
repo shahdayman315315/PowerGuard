@@ -59,23 +59,50 @@ namespace PowerGuard.Application.Services
             if(dto.IsApproved)
             {
                 factory.Status = FactoryStatus.Approved;
-                await _emailService.SendEmailAsync(factory.Manager.Email!, "Factory Approve", "Congrats! Ur factory has been approved by the admin.");
             }
             else
             {
                 factory.Status = FactoryStatus.Rejected;
                 factory.AdminRemarks = dto.AdminRemarks ?? "No remarks provided.";
-                await _emailService.SendEmailAsync(factory.Manager.Email!, "Factory Rejection", $"Ur Factory has been rejected due to : {dto.AdminRemarks}");
             }
 
             var result= await _unitOfWork.SaveChangesAsync();
 
             if(result > 0)
             {
+                await _emailService.SendEmailAsync(factory.Manager.Email!,  dto.IsApproved ? "Factory Approve" : "Factory Rejection",  dto.IsApproved ? "Congrats! Ur factory has been approved by the admin." : $"Ur Factory has been rejected due to : {dto.AdminRemarks}");
                 return Result<bool>.Success(true);
             }
 
             return Result<bool>.Failure("Can't update factory status in the database.");
+        }
+
+        public async Task<Result<bool>> ReactivateFactoryAsync(int factoryId)
+        {
+            var factory = await _unitOfWork.Factories.Query.Include(f => f.Manager).FirstOrDefaultAsync(f => f.Id==factoryId);
+
+            if (factory is null)
+            {
+                return Result<bool>.Failure("Factory not found.", 404);
+            }
+
+            if (factory.Status != FactoryStatus.Deactivated)
+            {
+                return Result<bool>.Failure("Only inactive factories can reactivated.");
+            }
+
+            factory.Status = FactoryStatus.Approved;
+            _unitOfWork.Factories.Update(factory);
+            var result= await _unitOfWork.SaveChangesAsync();
+
+            if(result > 0)
+            {
+                await _emailService.SendEmailAsync(factory.Manager.Email, "Factory Reactivation", "Your factory has been reactivated");
+                return Result<bool>.Success(true,"Factory has been activated");
+            }
+
+            return Result<bool>.Failure("Factory can't be activated");
+
         }
     }
 }

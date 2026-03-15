@@ -5,10 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PowerGuard.Application.Helpers;
 using PowerGuard.Domain.Models;
-using PowerGuard.Infrastructure.Data;
-// Replace this line:
-// services.Configure<Jwt>(configuration.GetSection("Jwt"));
-// With the following:
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -19,6 +15,7 @@ using PowerGuard.Application.Interfaces;
 using PowerGuard.Application.Services;
 using PowerGuard.Domain.Interfaces;
 using PowerGuard.Infrastructure.Repositories;
+using PowerGuard.Infrastructure.Data;
 
 namespace PowerGuard.Infrastructure.Extensions
 {
@@ -89,6 +86,7 @@ namespace PowerGuard.Infrastructure.Extensions
             services.AddScoped<IFactoryService, FactoryService>();
             services.AddScoped<IAdminService, AdminService>();
             services.AddScoped<IDepartmentService, DepartmentService>();
+            services.AddMemoryCache();
 
             return services;
         }

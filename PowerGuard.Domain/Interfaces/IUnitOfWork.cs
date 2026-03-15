@@ -21,6 +21,7 @@ namespace PowerGuard.Domain.Interfaces
         IBaseRepository<UserOTP> UserOTPs { get; }
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
+        Task<IExecutionStrategy> CreateExecutionStrategy(CancellationToken cancellationToken = default);
 
     }
 }

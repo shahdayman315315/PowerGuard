@@ -12,5 +12,7 @@ namespace PowerGuard.Application.Interfaces
     {
         Task<Result<AdminDashboardDto>> GetAdminDashboardStats();
         Task<Result<bool>> ReviewFactory(ReviewFactoryDto dto);
+        Task<Result<bool>> ReactivateFactoryAsync(int factoryId);
+
     }
 }
