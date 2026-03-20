@@ -86,6 +86,8 @@ namespace PowerGuard.Infrastructure.Extensions
             services.AddScoped<IFactoryService, FactoryService>();
             services.AddScoped<IAdminService, AdminService>();
             services.AddScoped<IDepartmentService, DepartmentService>();
+            services.AddScoped<IConsumptionEvaluationStrategy, CriticalEvaluationStrategy>();
+            services.AddScoped<IConsumptionEvaluationStrategy, WarningEvaluationSrategy>();
             services.AddMemoryCache();
 
             return services;
