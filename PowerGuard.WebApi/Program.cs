@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using PowerGuard.Domain.Models;
 using PowerGuard.Infrastructure.Data;
 using PowerGuard.Infrastructure.Extensions;
+using PowerGuard.Infrastructure.Hubs;
 using System.Threading.Tasks;
 
 namespace PowerGuard.WebApi
@@ -43,6 +44,7 @@ namespace PowerGuard.WebApi
 
 
             app.MapControllers();
+            app.MapHub<NotificationHub>("/notificationHub");
 
             app.Run();
         }

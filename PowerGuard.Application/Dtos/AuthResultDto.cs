@@ -17,5 +17,6 @@ namespace PowerGuard.Application.Dtos
         public string Message { get; set; } = null!;
         public bool IsSuccess { get; set; }
         public int FactoryId { get; set; }  
+        public int DepartmentId { get; set; }
     }
 }

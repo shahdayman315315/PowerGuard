@@ -12,6 +12,8 @@ namespace PowerGuard.Domain.Models
     {
         public int? FactoryId { get; set; }
         public Factory? Factory { get; set; }
+        public int? DepartmentId { get; set; }
+        public Department? Department { get; set; }
         public  ICollection<Factory> ManagedFactories { get; set; } = new List<Factory>();
         public  ICollection<Department> ManagedDepartments { get; set; } = new List<Department>();
         public  ICollection<Notification> Notifications { get; set; } = new List<Notification>();

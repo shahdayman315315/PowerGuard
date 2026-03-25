@@ -1,7 +1,9 @@
 ﻿using AutoMapper;
+using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PowerGuard.Application.Dtos;
+using PowerGuard.Application.Events;
 using PowerGuard.Application.Helpers;
 using PowerGuard.Application.Interfaces;
 using PowerGuard.Domain.Enums;
@@ -20,12 +22,17 @@ namespace PowerGuard.Application.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IMapper _mapper;
+        private readonly IMediator _mediator;
+        private readonly IEnumerable<IConsumptionEvaluationStrategy> _strategies;
 
-        public FactoryService(IUnitOfWork unitOfWork , IMapper mapper, UserManager<ApplicationUser> userManager)
+        public FactoryService(IUnitOfWork unitOfWork , IMapper mapper, UserManager<ApplicationUser> userManager
+            ,IMediator mediator, IEnumerable<IConsumptionEvaluationStrategy> strategies)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _userManager = userManager;
+            _mediator = mediator;
+            _strategies = strategies;
         }
         public async Task<Result<CreateFactoryDto>> CreateFactory(CreateFactoryDto dto,string userId)
         {
@@ -146,6 +153,34 @@ namespace PowerGuard.Application.Services
             if (factory is null)
             {
                 return Result<bool>.Failure("Factory not found.",404);
+            }
+
+            var currentTotalFactoryConsumption = await _unitOfWork.Departments.Query
+               .Where(d => d.FactoryId == factoryId )
+               .Select(d => d.ConsumptionLogs
+                   .OrderByDescending(log => log.CapturedAt)
+                   .Select(log => log.ConsumptionValue)
+                   .FirstOrDefault()) // بياخد آخر قيمة للقسم ده، لو مفيش هتبقى 0
+               .SumAsync();
+
+            var factoryStatus = ConsumptionStatus.Normal;
+            if (factory.CurrentConsumptionLimit.HasValue)
+            {
+                foreach (var strategy in _strategies)
+                {
+                    var status = strategy.Evaluate(currentTotalFactoryConsumption, dto.NewLimit);
+
+                    if (status > factoryStatus)
+                    {
+                        factoryStatus = status;
+                    }
+                }
+            }
+
+
+            if (factoryStatus != ConsumptionStatus.Normal)
+            {
+                await _mediator.Publish(new HighConsumptionDetectedEvent(currentTotalFactoryConsumption, factoryStatus, factoryId));
             }
 
             factory.CurrentConsumptionLimit = dto.NewLimit;

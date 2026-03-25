@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using PowerGuard.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,16 +11,23 @@ namespace PowerGuard.Application.Events
 {
     public class HighConsumptionDetectedEvent:INotification
     {
-        public int LogId { get;  }
+        public int? LogId { get;  }
         public decimal Value {  get; }
-        public string DepartmentName { get; }
-        public string Status { get; }
-        public HighConsumptionDetectedEvent(int logId,decimal value,string departmentName,string status)
+        public int FactoryId { get; }
+        public int? DepartmentId { get; }
+        public string? DepartmentName { get; }
+        public ConsumptionStatus? DepartmentStatus { get; }
+        public ConsumptionStatus? FactoryStatus { get; }
+        public HighConsumptionDetectedEvent(decimal value, ConsumptionStatus factoryStatus,
+            int factoryId, ConsumptionStatus? departmentStatus=null, string? departmentName = null, int? departmentId = null, int? logId = null)
         {
             LogId = logId;
             Value = value;
             DepartmentName = departmentName;
-            Status = status;
+            DepartmentStatus = departmentStatus;
+            FactoryId = factoryId;
+            DepartmentId = departmentId;
+            FactoryStatus = factoryStatus;
             
         }
     }

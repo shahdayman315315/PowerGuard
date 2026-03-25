@@ -100,7 +100,13 @@ namespace PowerGuard.Infrastructure.Data
                 e.HasOne(u => u.Factory)
                 .WithMany() // المصنع عنده موظفين كتير
                 .HasForeignKey(u => u.FactoryId)
-                .OnDelete(DeleteBehavior.Restrict); // عشان لو مسحنا يوزر المصنع ميتأثرش
+                .OnDelete(DeleteBehavior.Restrict); 
+           
+                e.HasOne(u=>u.Department)
+                .WithMany()
+                .HasForeignKey(u=>u.DepartmentId)
+                .OnDelete(DeleteBehavior.Restrict);
+               
             });
 
 

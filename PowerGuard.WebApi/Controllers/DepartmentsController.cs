@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PowerGuard.Application.Dtos;
 using PowerGuard.Application.Interfaces;
+using PowerGuard.Application.Services;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace PowerGuard.WebApi.Controllers
@@ -127,6 +129,26 @@ namespace PowerGuard.WebApi.Controllers
             return Ok(result.Data);
         }
 
+
+        [HttpPatch("Update-ConsumptionLimit/{departmentid}")]
+        public async Task<IActionResult> UpdateConsumptionLimit(int departmentid, UpdateConsumptionLimitDto dto)
+        {
+            var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            var result = await _departmentsService.UpdateConsumptionLimit(dto, departmentid,  userId);
+
+            if (!result.IsSuccess)
+            {
+                if (result.StatusCode == 404)
+                {
+                    return NotFound(result.Message);
+                }
+
+                return BadRequest(result.Message);
+            }
+
+            return Ok(result.Data);
+        }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)

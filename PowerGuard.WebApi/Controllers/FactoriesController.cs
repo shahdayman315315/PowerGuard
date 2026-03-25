@@ -66,6 +66,26 @@ namespace PowerGuard.WebApi.Controllers
             return Ok(result.Data);
         }
 
+
+        [HttpPatch("Update-ConsumptionLimit/{factoryid}")]
+        public async Task<IActionResult> UpdateConsumptionLimit(int factoryid, UpdateConsumptionLimitDto dto)
+        {
+            var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            var result =await _factoryService.UpdateConsumptionLimit(factoryid, dto,userId);
+
+            if (!result.IsSuccess)
+            {
+                if(result.StatusCode == 404)
+                {
+                    return NotFound(result.Message);
+                }
+
+                return BadRequest(result.Message);
+            }
+
+            return Ok(result.Data);
+        }
         
     }
 }

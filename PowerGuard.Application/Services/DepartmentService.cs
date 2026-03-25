@@ -1,12 +1,15 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using PowerGuard.Application.Dtos;
+using PowerGuard.Application.Events;
 using PowerGuard.Application.Helpers;
 using PowerGuard.Application.Interfaces;
+using PowerGuard.Domain.Enums;
 using PowerGuard.Domain.Interfaces;
 using PowerGuard.Domain.Models;
 using System;
@@ -24,14 +27,20 @@ namespace PowerGuard.Application.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
         private readonly IMemoryCache _cache;
+        private readonly IEnumerable<IConsumptionEvaluationStrategy> _strategies;
+        private readonly IMediator _mediator;
+
         public DepartmentService(IUnitOfWork unitOfWork,UserManager<ApplicationUser> userManager 
-            ,IHttpContextAccessor httpContextAccessor, IMapper mapper,IMemoryCache cache)
+            ,IHttpContextAccessor httpContextAccessor, IMapper mapper,IMemoryCache cache, 
+            IEnumerable<IConsumptionEvaluationStrategy> strategies, IMediator mediator)
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
             _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
             _cache = cache;
+            _strategies = strategies;
+            _mediator = mediator;
         }
         public async Task<Result<IEnumerable<ManagerDto>>> GetAvailableManagersAsync()
         {
@@ -101,21 +110,8 @@ namespace PowerGuard.Application.Services
 
             await _unitOfWork.Departments.AddAsync(department);
 
-            if(dto.ManagerId is not null)
-            {
-                var manager = await _userManager.FindByIdAsync(dto.ManagerId);
-                manager.FactoryId = factory.Id;
-
-                var updateResult = await _userManager.UpdateAsync(manager);
-
-                if (!updateResult.Succeeded)
-                {
-                    return Result<CreateDepartmentDto>.Failure("Error happened while setting the manager");
-                }
-
-            }
-           
             var result = await _unitOfWork.SaveChangesAsync();
+
 
             if (result > 0)
             {
@@ -123,10 +119,28 @@ namespace PowerGuard.Application.Services
 
                 _cache.Remove(cacheKey);
 
+                if (dto.ManagerId is not null)
+                {
+                    var manager = await _userManager.FindByIdAsync(dto.ManagerId);
+                    manager.FactoryId = factory.Id;
+                    manager.DepartmentId = department.Id;
+
+                    var updateResult = await _userManager.UpdateAsync(manager);
+
+                    if (!updateResult.Succeeded)
+                    {
+                        return Result<CreateDepartmentDto>.Failure("Error happened while setting the manager");
+                    }
+
+                }
+
                 return Result<CreateDepartmentDto>.Success(dto);
             }
 
+
             return Result<CreateDepartmentDto>.Failure("Failed to save the department to the database.");
+
+
         }
 
         public async Task<Result<bool>> RegisterDepartmentManager(RegisterManagerDto dto)
@@ -168,6 +182,7 @@ namespace PowerGuard.Application.Services
                 {
                     var user = _mapper.Map<ApplicationUser>(dto);
                     user.FactoryId = factoryId;
+                    user.DepartmentId=department.Id;
 
                     var result = await _userManager.CreateAsync(user, dto.Password);
 
@@ -280,10 +295,7 @@ namespace PowerGuard.Application.Services
             }
 
             var factory = await _unitOfWork.Factories.GetByIdAsync(factoryId);
-            if (factory.CurrentConsumptionLimit < dto.CurrentConsumptionLimit)
-            {
-                return Result<DepartmentDto>.Failure("Department consumption limit cannot exceed factory's current consumption limit.");
-            }
+           
 
             _mapper.Map(dto, department);
             _unitOfWork.Departments.Update(department);
@@ -333,6 +345,85 @@ namespace PowerGuard.Application.Services
             }
 
             return Result<bool>.Failure("Can't delete department from the data base");
+        }
+
+        public async Task<Result<bool>> UpdateConsumptionLimit(UpdateConsumptionLimitDto dto, int departmentId, string userId)
+        {
+            var factoryIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst("FactoryId")?.Value;
+
+            if (string.IsNullOrEmpty(factoryIdClaim) || !int.TryParse(factoryIdClaim, out int factoryId))
+            {
+                return Result<bool>.Failure("Factory ID claim is missing or invalid.", 400);
+            }
+
+            var factory=await _unitOfWork.Factories.GetByIdAsync(factoryId);
+
+            if(factory is null)
+            {
+                return Result<bool>.Failure("Departmentnot found");
+
+            }
+
+            if (factory.CurrentConsumptionLimit < dto.NewLimit)
+            {
+                return Result<bool>.Failure("Department Limit can't be greater tha factory limit");
+            }
+
+            var department = await _unitOfWork.Departments.Query.FirstOrDefaultAsync(d => d.Id == departmentId && d.FactoryId == factoryId);
+
+            if (department is null)
+            {
+                return Result<bool>.Failure("Department not found", 404);
+            }
+
+            var lastReading = await _unitOfWork.ConsumptionLogs.Query.Where(d => d.DepartmentId == departmentId).OrderByDescending(l => l.CapturedAt).FirstOrDefaultAsync();
+
+            var departmentStatus = ConsumptionStatus.Normal;
+            
+            if(lastReading != null)
+            {
+                foreach (var strategy in _strategies)
+                {
+                    var status = strategy.Evaluate(lastReading.ConsumptionValue, dto.NewLimit);
+
+                    if (status > departmentStatus)
+                    {
+                        departmentStatus = status;
+                    }
+                }
+
+            }
+            
+
+            department.CurrentConsumptionLimit = dto.NewLimit;
+
+            var limitHistory = new LimitHistory
+            {
+                FactoryId = factoryId,
+                DepartmentId = departmentId,
+                LimitValue = dto.NewLimit,
+                CreatedAt = DateTime.UtcNow,
+                ActiveFrom = DateTime.UtcNow,
+                SetBy = userId
+            };
+
+            await _unitOfWork.LimitHistories.AddAsync(limitHistory);
+            var result = await _unitOfWork.SaveChangesAsync();
+
+            if (result <= 0)
+            {
+                return Result<bool>.Failure("Failed to update the consumption limit in the database.");
+
+            }
+
+            if (lastReading is not null && departmentStatus != ConsumptionStatus.Normal)
+            {
+                await _mediator.Publish(new HighConsumptionDetectedEvent(lastReading.ConsumptionValue, ConsumptionStatus.Normal, factoryId, departmentStatus, department.Name, departmentId, lastReading.Id));
+
+            }
+
+            return Result<bool>.Success(true);
+
         }
     }
 }

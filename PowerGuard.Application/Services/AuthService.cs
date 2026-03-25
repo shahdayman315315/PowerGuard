@@ -102,7 +102,8 @@ namespace PowerGuard.Application.Services
                 RefreshToken = refreshToken,
                 Role= (await _userManager.GetRolesAsync(existUser)).FirstOrDefault() ?? string.Empty,
                 IsSuccess = true,
-                FactoryId = existUser.FactoryId??0
+                FactoryId = existUser.FactoryId??0,
+                DepartmentId=existUser.DepartmentId??0
             };
         }
 
@@ -156,7 +157,9 @@ namespace PowerGuard.Application.Services
                 RefreshToken = refreshToken,
                 RefreshTokenExpiration = refreshTokenEntity.ExpiresOn,
                 ExpirationDate = jwtToken.ValidTo,
-                FactoryId = user.FactoryId ?? 0
+                FactoryId = user.FactoryId ?? 0,
+                DepartmentId = user.DepartmentId ?? 0
+
             };
 
         }
@@ -206,7 +209,9 @@ namespace PowerGuard.Application.Services
                 RefreshToken = refreshToken,
                 Role= "FactoryManager",
                 IsSuccess = true,
-                FactoryId = user.FactoryId ?? 0
+                FactoryId = user.FactoryId ?? 0,
+                DepartmentId = user.DepartmentId ?? 0
+
             };
         }
 

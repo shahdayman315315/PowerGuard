@@ -89,6 +89,7 @@ namespace PowerGuard.Infrastructure.Extensions
             services.AddScoped<IConsumptionEvaluationStrategy, CriticalEvaluationStrategy>();
             services.AddScoped<IConsumptionEvaluationStrategy, WarningEvaluationSrategy>();
             services.AddMemoryCache();
+            services.AddSignalR();
 
             return services;
         }

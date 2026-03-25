@@ -16,6 +16,7 @@ namespace PowerGuard.Application.Interfaces
         Task<Result<DepartmentDto>> GetByIdAsync(int id);
         Task<Result<IEnumerable<DepartmentDto>>> GetAllAsync(int? factoryId=null);
         Task<Result<DepartmentDto>> UpdateAsync(UpdateDepartmentDto dto,int departmentId);
+        Task<Result<bool>> UpdateConsumptionLimit(UpdateConsumptionLimitDto dto,int departmentId,string userId);
         Task<Result<bool>> DeleteAsync(int id);
 
     }
