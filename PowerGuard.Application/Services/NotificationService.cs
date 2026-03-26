@@ -5,6 +5,7 @@ using PowerGuard.Application.Dtos;
 using PowerGuard.Application.Helpers;
 using PowerGuard.Application.Interfaces;
 using PowerGuard.Domain.Interfaces;
+using PowerGuard.Infrastructure.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,12 +30,14 @@ namespace PowerGuard.Application.Services
             return Result<int>.Success(unreadNotifications);
         }
 
-        public async Task<Result<IEnumerable<NotificationDto>>> GetUserNotificationAsync(string userId)
+        public async Task<Result<PagedResult<NotificationDto>>> GetUserNotificationAsync(string userId,int pageNumber,int pageSize)
         {
             var notifications = await _unitOfWork.Notifications.Query.
-                Where(n => n.UserId == userId).OrderByDescending(n=>n.CreatedAt).ProjectTo<NotificationDto>(_mapper.ConfigurationProvider).ToListAsync();
+                Where(n => n.UserId == userId).OrderByDescending(n=>n.CreatedAt).
+                ProjectTo<NotificationDto>(_mapper.ConfigurationProvider)
+                .ToPagedResultAsync(pageNumber, pageSize);
 
-            return Result<IEnumerable<NotificationDto>>.Success(notifications);
+            return Result<PagedResult<NotificationDto>>.Success(notifications);
         }
 
         public async Task<Result<bool>> MarkAsReadAsync(int notificationId, string userId)
@@ -43,7 +46,7 @@ namespace PowerGuard.Application.Services
 
             if(notification is null)
             {
-                return Result<bool>.Failure("Notification not found");
+                return Result<bool>.Failure("Notification not found",404);
             }
 
             if(notification.IsRead)
@@ -62,6 +65,45 @@ namespace PowerGuard.Application.Services
             }
 
             return Result<bool>.Failure("Can't update notification in the data base");
+        }
+
+        public async Task<Result<bool>> MarkAllAsReadAsync(string userId)
+        {
+            var unreadNotifications = await _unitOfWork.Notifications.Query
+                .Where(n => n.UserId == userId && !n.IsRead)
+                .ToListAsync();
+
+            foreach (var notification in unreadNotifications)
+            {
+                notification.IsRead = true;
+            }
+
+            var result=await _unitOfWork.SaveChangesAsync();
+
+            if (result>=0)
+            {
+                return Result<bool>.Success(true);
+            }
+
+            return Result<bool>.Failure("Can't update notifications in the data base");
+        }
+
+        public async Task<Result<bool>> DeleteAll(string userId)
+        {
+            try
+            {
+                var Notifications = await _unitOfWork.Notifications.Query
+                               .Where(n => n.UserId == userId)
+                               .ExecuteDeleteAsync();
+
+                return Result<bool>.Success(true);
+            }
+
+            catch (Exception ex)
+            {
+                return Result<bool>.Failure("Can't delete notifications from the data base");
+            }
+
         }
     }
 }

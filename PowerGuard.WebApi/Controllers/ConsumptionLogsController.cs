@@ -33,5 +33,117 @@ namespace PowerGuard.WebApi.Controllers
 
             return Ok(result.Data);
         }
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateConsumption(UpdateConsumptionLogDto dto)
+        {
+            var result = await _consumptionService.UpdateConsumptionLogAsync(dto);
+
+            if (!result.IsSuccess)
+            {
+                if (result.StatusCode == 404)
+                {
+                    return NotFound(result.Message);
+                }
+
+                return BadRequest(result.Message);
+            }
+
+            return Ok(result.Data);
+        }
+
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteConsumption(int id)
+        {
+            var result = await _consumptionService.DeleteConsumptionLogAsync(id);
+
+            if (!result.IsSuccess)
+            {
+                if (result.StatusCode == 404)
+                {
+                    return NotFound(result.Message);
+                }
+
+                return BadRequest(result.Message);
+            }
+
+            return Ok(result.Data);
+        }
+
+        [HttpGet("department-logs/{departmentId}")]
+        public async Task<IActionResult> GetDepartmentLogs(int departmentId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            var result = await _consumptionService.GetConsumptionLogsAsync(departmentId, pageNumber, pageSize);
+
+            if (!result.IsSuccess)
+            {
+                if (result.StatusCode == 404)
+                {
+                    return NotFound(result.Message);
+                }
+
+                return BadRequest(result.Message);
+            }
+
+            return Ok(result.Data);
+        }
+
+        [HttpGet("department-summary/{departmentId}")]
+        public async Task<IActionResult> GetDepartmentSummary(int departmentId)
+        {
+            var result = await _consumptionService.GetDepartmentDailySummaryAsync(departmentId);
+
+            if (!result.IsSuccess)
+            {
+                if (result.StatusCode == 404)
+                {
+                    return NotFound(result.Message);
+                }
+
+                return BadRequest(result.Message);
+            }
+
+            return Ok(result.Data);
+        }
+
+
+        [HttpGet("factory-summary{factoryId}")]
+        public async Task<IActionResult> GetFactorySummary(int factoryId)
+        {
+            var result = await _consumptionService.GetFactoryDailySummaryAsync(factoryId);
+
+            if (!result.IsSuccess)
+            {
+                if (result.StatusCode == 404)
+                {
+                    return NotFound(result.Message);
+                }
+
+                return BadRequest(result.Message);
+            }
+
+            return Ok(result.Data);
+        }
+
+        [HttpGet("all-departments-summary{factoryId}")]
+        public async Task<IActionResult> GetAllDepartmentsSummary(int factoryId)
+        {
+           
+            var result = await _consumptionService.GetAllDepartmentsSummaryAsync(factoryId);
+
+            if (!result.IsSuccess)
+            {
+                if (result.StatusCode == 404)
+                {
+                    return NotFound(result.Message);
+                }
+
+                return BadRequest(result.Message);
+            }
+
+            return Ok(result.Data);
+        }
     }
 }
+
