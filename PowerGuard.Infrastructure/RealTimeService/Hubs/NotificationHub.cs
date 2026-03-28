@@ -8,7 +8,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PowerGuard.Infrastructure.Hubs
+namespace PowerGuard.Infrastructure.RealTimeService.Hubs
 {
     [Authorize]
     public class NotificationHub:Hub

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using PowerGuard.Application.Events;
+using PowerGuard.Application.Interfaces;
 using PowerGuard.Domain.Enums;
 using PowerGuard.Domain.Interfaces;
 using PowerGuard.Domain.Models;
@@ -16,11 +17,11 @@ namespace PowerGuard.Application.Handlers
     public class CreateAlertHandler : INotificationHandler<HighConsumptionDetectedEvent>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IHubContext<NotificationHub> _hubContext;
-        public CreateAlertHandler(IUnitOfWork unitOfWork, IHubContext hubContext)
+        private readonly IRealTimeNotificationService _rtNotificationService;       
+        public CreateAlertHandler(IUnitOfWork unitOfWork, IRealTimeNotificationService rtNotificationService)
         {
             _unitOfWork = unitOfWork;
-            _hubContext = hubContext;
+            _rtNotificationService=rtNotificationService;
         }
         public async Task Handle(HighConsumptionDetectedEvent notification, CancellationToken cancellationToken)
         {
@@ -76,12 +77,7 @@ namespace PowerGuard.Application.Handlers
 
                 try
                 {
-                    await _hubContext.Clients.User(userId).SendAsync("ReceiveNotification", new
-                    {
-                        Message = message,
-                        AlertSeverity = alert.Severity.ToString(),
-                        CreatedAt = DateTime.UtcNow
-                    });
+                    await _rtNotificationService.SendAlertAsync(userId, message,alert.Severity.ToString());
                 }
                 catch (Exception ex)
                 {

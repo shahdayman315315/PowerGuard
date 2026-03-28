@@ -89,61 +89,8 @@ namespace PowerGuard.WebApi.Controllers
             return Ok(result.Data);
         }
 
-        [HttpGet("department-summary/{departmentId}")]
-        public async Task<IActionResult> GetDepartmentSummary(int departmentId)
-        {
-            var result = await _consumptionService.GetDepartmentDailySummaryAsync(departmentId);
+        
 
-            if (!result.IsSuccess)
-            {
-                if (result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
-
-                return BadRequest(result.Message);
-            }
-
-            return Ok(result.Data);
-        }
-
-
-        [HttpGet("factory-summary{factoryId}")]
-        public async Task<IActionResult> GetFactorySummary(int factoryId)
-        {
-            var result = await _consumptionService.GetFactoryDailySummaryAsync(factoryId);
-
-            if (!result.IsSuccess)
-            {
-                if (result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
-
-                return BadRequest(result.Message);
-            }
-
-            return Ok(result.Data);
-        }
-
-        [HttpGet("all-departments-summary{factoryId}")]
-        public async Task<IActionResult> GetAllDepartmentsSummary(int factoryId)
-        {
-           
-            var result = await _consumptionService.GetAllDepartmentsSummaryAsync(factoryId);
-
-            if (!result.IsSuccess)
-            {
-                if (result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
-
-                return BadRequest(result.Message);
-            }
-
-            return Ok(result.Data);
-        }
     }
 }
 

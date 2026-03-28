@@ -11,22 +11,22 @@ namespace PowerGuard.Application.Events
 {
     public class HighConsumptionDetectedEvent:INotification
     {
-        public int? LogId { get;  }
+        public int LogId { get;  }
         public decimal Value {  get; }
         public int FactoryId { get; }
-        public int? DepartmentId { get; }
-        public string? DepartmentName { get; }
-        public ConsumptionStatus? DepartmentStatus { get; }
-        public ConsumptionStatus? FactoryStatus { get; }
+        public int DepartmentId { get; }
+        public string DepartmentName { get; }
+        public ConsumptionStatus DepartmentStatus { get; }
+        public ConsumptionStatus FactoryStatus { get; }
         public HighConsumptionDetectedEvent(decimal value, ConsumptionStatus factoryStatus,
             int factoryId, ConsumptionStatus? departmentStatus=null, string? departmentName = null, int? departmentId = null, int? logId = null)
         {
-            LogId = logId;
+            LogId = logId??0;
             Value = value;
-            DepartmentName = departmentName;
-            DepartmentStatus = departmentStatus;
+            DepartmentName = departmentName??"";
+            DepartmentStatus = departmentStatus??ConsumptionStatus.Normal;
             FactoryId = factoryId;
-            DepartmentId = departmentId;
+            DepartmentId = departmentId??0;
             FactoryStatus = factoryStatus;
             
         }

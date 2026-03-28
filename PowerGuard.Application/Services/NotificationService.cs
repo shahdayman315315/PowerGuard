@@ -101,7 +101,7 @@ namespace PowerGuard.Application.Services
 
             catch (Exception ex)
             {
-                return Result<bool>.Failure("Can't delete notifications from the data base");
+                return Result<bool>.Failure($"Can't delete notifications from the data base  {ex.Message}");
             }
 
         }

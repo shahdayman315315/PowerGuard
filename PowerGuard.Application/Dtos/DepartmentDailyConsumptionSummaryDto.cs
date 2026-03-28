@@ -18,6 +18,8 @@ namespace PowerGuard.Application.Dtos
         public DateTime? LastReadingAt { get; set; }
 
         // هل الاستهلاك زاد ولا قل عن نفس الوقت إمبارح؟
-        public double? ComparisonWithYesterday { get; set; }
+        public double ComparisonWithYesterday { get; set; }
+
+        public double ShareOfFactoryConsumption { get; set; }
     }
 }

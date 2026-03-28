@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using PowerGuard.Domain.Models;
 using PowerGuard.Infrastructure.Data;
 using PowerGuard.Infrastructure.Extensions;
-using PowerGuard.Infrastructure.Hubs;
+using PowerGuard.Infrastructure.RealTimeService.Hubs;
 using System.Threading.Tasks;
 
 namespace PowerGuard.WebApi

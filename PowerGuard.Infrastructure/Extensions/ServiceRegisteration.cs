@@ -3,19 +3,20 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using PowerGuard.Application.Helpers;
-using PowerGuard.Domain.Models;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
 using Microsoft.IdentityModel.Tokens;
+using PowerGuard.Application.Helpers;
 using PowerGuard.Application.Interfaces;
 using PowerGuard.Application.Services;
 using PowerGuard.Domain.Interfaces;
-using PowerGuard.Infrastructure.Repositories;
+using PowerGuard.Domain.Models;
 using PowerGuard.Infrastructure.Data;
+using PowerGuard.Infrastructure.RealTimeService;
+using PowerGuard.Infrastructure.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace PowerGuard.Infrastructure.Extensions
 {
@@ -82,12 +83,23 @@ namespace PowerGuard.Infrastructure.Extensions
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            services.AddScoped<IEmailService, EmailService>();
+            services.AddTransient<IEmailService, EmailService>();
             services.AddScoped<IFactoryService, FactoryService>();
             services.AddScoped<IAdminService, AdminService>();
             services.AddScoped<IDepartmentService, DepartmentService>();
             services.AddScoped<IConsumptionEvaluationStrategy, CriticalEvaluationStrategy>();
             services.AddScoped<IConsumptionEvaluationStrategy, WarningEvaluationSrategy>();
+            services.AddScoped<IConsumptionService, ConsumptionService>();
+            services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IDepartmentDashboardService, DepartmentDashboardService>();
+            services.AddScoped<IFactoryDashboardService, FactoryDashboardService>();
+            // في ملف Program.cs
+            services.AddScoped<IRealTimeNotificationService, RealTimeNotificationService>();
+
+            // في ملف Program.cs
+            services.AddMediatR(cfg => {
+                cfg.RegisterServicesFromAssembly(typeof(IFactoryDashboardService).Assembly);
+            });
             services.AddMemoryCache();
             services.AddSignalR();
 

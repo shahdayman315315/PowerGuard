@@ -17,11 +17,11 @@ namespace PowerGuard.WebApi.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var userId=User.Claims.FirstOrDefault(c=>c.Type==ClaimTypes.NameIdentifier)?.Value;
             
-            var result=await _notificationService.GetUserNotificationAsync(userId);
+            var result=await _notificationService.GetUserNotificationAsync(userId,pageNumber,pageSize);
 
             return Ok(result.Data);
         }

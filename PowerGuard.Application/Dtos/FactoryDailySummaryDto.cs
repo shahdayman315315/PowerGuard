@@ -17,5 +17,8 @@ namespace PowerGuard.Application.Dtos
        
         // هل الاستهلاك زاد ولا قل عن نفس الوقت إمبارح؟
         public double? ComparisonWithYesterday { get; set; }
+
+        public KeyValuePair<string,double> TopConsumptionDept { get; set; }
+        public KeyValuePair<string,double> LeastConsumptionDept { get; set; }
     }
 }
