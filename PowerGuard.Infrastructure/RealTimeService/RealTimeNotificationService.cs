@@ -17,14 +17,15 @@ namespace PowerGuard.Infrastructure.RealTimeService
         {
             _hubContext = hubContext;
         }
-        public async Task SendAlertAsync(string userId, string message, string severity)
+        public async Task SendAlertAsync(string userId, string message, string severity,int alertId)
         {
             
                 await _hubContext.Clients.User(userId).SendAsync("ReceiveNotification", new
                 {
                     Message = message,
                     AlertSeverity = severity,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    AlertId= alertId
                 });
             
         }

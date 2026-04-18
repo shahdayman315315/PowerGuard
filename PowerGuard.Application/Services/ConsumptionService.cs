@@ -65,22 +65,27 @@ namespace PowerGuard.Application.Services
 
             var date=DateTime.UtcNow.Date;
 
-            var previousDayTotalFactoryConsumption = await _unitOfWork.Departments.Query
-                .AsNoTracking()
-                .Where(d => d.FactoryId == factoryId)
-                .Select(d => d.ConsumptionLogs.Where(l => l.CapturedAt < date)
-                    .OrderByDescending(log => log.CapturedAt)
-                    .Select(log => log.ConsumptionValue)
-                    .FirstOrDefault()) // بياخد آخر قيمة للقسم ده، لو مفيش هتبقى 0
-                .SumAsync();
+            var lastConsumptions = await _unitOfWork.Departments.Query
+               .AsNoTracking()
+               .Where(d => d.FactoryId == factoryId)
+               .Select(d => d.ConsumptionLogs
+               .Where(l => l.CapturedAt < date)
+               .OrderByDescending(log => log.CapturedAt)
+               .Select(log => log.ConsumptionValue)
+               .FirstOrDefault()) // هيرجع IEnumerable<double> مثلاً
+               .ToListAsync();
 
-            var currentTotalFactoryConsumption = await _unitOfWork.Departments.Query
-                .Where(d => d.FactoryId == factoryId && d.Id !=department.Id)
-                .Select(d => d.ConsumptionLogs.Where(l=>l.CapturedAt>=date)
+            var previousDayTotalFactoryConsumption = lastConsumptions.Sum();
+
+            var currentConsumption= await _unitOfWork.Departments.Query
+                .Where(d => d.FactoryId == factoryId && d.Id != department.Id)
+                .Select(d => d.ConsumptionLogs.Where(l => l.CapturedAt >= date)
                     .OrderByDescending(log => log.CapturedAt)
                     .Select(log => log.ConsumptionValue)
                     .FirstOrDefault()) // بياخد آخر قيمة للقسم ده، لو مفيش هتبقى 0
-                .SumAsync();
+                .ToListAsync();
+
+            var currentTotalFactoryConsumption = currentConsumption.Sum();
 
             var newTotalFactoryConsumption = currentTotalFactoryConsumption + dto.ConsumptionValue;
 

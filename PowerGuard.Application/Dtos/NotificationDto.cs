@@ -12,6 +12,7 @@ namespace PowerGuard.Application.Dtos
         public string Message { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool IsRead { get; set; }
-       
+        public int AlertId { get; set; }
+
     }
 }

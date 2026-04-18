@@ -31,7 +31,7 @@ namespace PowerGuard.Application.Handlers
             {
                 ConsumptionLogId = notification.LogId,
                 Type = AlertType.LimitExceeded,
-                Severity = dangStatus == "Critical" ? AlertSeverity.High : AlertSeverity.Low,
+                Severity = dangStatus == "Exceeded" ? AlertSeverity.High : AlertSeverity.Low,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -77,7 +77,7 @@ namespace PowerGuard.Application.Handlers
 
                 try
                 {
-                    await _rtNotificationService.SendAlertAsync(userId, message,alert.Severity.ToString());
+                    await _rtNotificationService.SendAlertAsync(userId, message,alert.Severity.ToString(),alert.Id);
                 }
                 catch (Exception ex)
                 {

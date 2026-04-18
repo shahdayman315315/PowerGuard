@@ -48,19 +48,14 @@ namespace PowerGuard.WebApi.Controllers
 
 
 
-        [HttpPut("{id}")]
+        [HttpPut("update/{id}")]
         public async Task<IActionResult> Update(int id, UpdateFactoryDto dto)
         {
             var result = await _factoryService.UpdateFactory(id, dto);
 
             if (!result.IsSuccess)
             {
-                if (result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
-
-                return BadRequest(result.Message);
+                return StatusCode(result.StatusCode, result.Message);
             }
 
             return Ok(result.Data);
@@ -74,15 +69,11 @@ namespace PowerGuard.WebApi.Controllers
 
             var result =await _factoryService.UpdateConsumptionLimit(factoryid, dto,userId);
 
-            if (!result.IsSuccess)
+            if(!result.IsSuccess)
             {
-                if(result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
-
-                return BadRequest(result.Message);
+                return StatusCode(result.StatusCode, result.Message);
             }
+
 
             return Ok(result.Data);
         }

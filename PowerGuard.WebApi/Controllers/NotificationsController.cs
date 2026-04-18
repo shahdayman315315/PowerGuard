@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PowerGuard.Application.Interfaces;
 using System.Security.Claims;
@@ -7,6 +8,7 @@ namespace PowerGuard.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class NotificationsController : ControllerBase
     {
         private readonly INotificationService _notificationService;
@@ -38,7 +40,7 @@ namespace PowerGuard.WebApi.Controllers
         }
 
 
-        [HttpPatch("{id}")]
+        [HttpPatch("mark-as-read/{id}")]
         public async Task<IActionResult> MarkAsRead(int id)
         {
             var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
@@ -47,19 +49,14 @@ namespace PowerGuard.WebApi.Controllers
 
             if (!result.IsSuccess)
             {
-                if (result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
-
-                return BadRequest(result.Message);
+               return StatusCode(result.StatusCode, result.Message);
             }
 
             return Ok(result.Data);
         }
 
 
-        [HttpDelete]
+        [HttpDelete("delete-all")]
         public async Task<IActionResult> DeleteAll()
         {
             var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
@@ -68,7 +65,7 @@ namespace PowerGuard.WebApi.Controllers
 
             if (!result.IsSuccess)
             {
-                return BadRequest(result.Message);
+                return StatusCode(result.StatusCode, result.Message);
             }
 
             return Ok(result.Data);

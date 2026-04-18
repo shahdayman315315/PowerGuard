@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PowerGuard.Application.Dtos;
 using PowerGuard.Application.Interfaces;
@@ -7,6 +8,7 @@ namespace PowerGuard.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles ="DepartmentManager,FactoryManager")]
     public class ConsumptionLogsController : ControllerBase
     {
         private readonly IConsumptionService _consumptionService;
@@ -16,38 +18,24 @@ namespace PowerGuard.WebApi.Controllers
         }
 
 
-        [HttpPost]
+        [HttpPost("enter-consumption")]
         public async Task<IActionResult> EnterConsumption(ConsumptionLogDto dto)
         {
             var result =await _consumptionService.EnterConsumptionAsync(dto);
 
             if (!result.IsSuccess)
-            {
-                if (result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
-
-                return BadRequest(result.Message);
-            }
+                return StatusCode(result.StatusCode, result.Message);
 
             return Ok(result.Data);
         }
 
-        [HttpPut]
+        [HttpPut("update")]
         public async Task<IActionResult> UpdateConsumption(UpdateConsumptionLogDto dto)
         {
             var result = await _consumptionService.UpdateConsumptionLogAsync(dto);
 
             if (!result.IsSuccess)
-            {
-                if (result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
-
-                return BadRequest(result.Message);
-            }
+                return StatusCode(result.StatusCode, result.Message);
 
             return Ok(result.Data);
         }
@@ -59,14 +47,7 @@ namespace PowerGuard.WebApi.Controllers
             var result = await _consumptionService.DeleteConsumptionLogAsync(id);
 
             if (!result.IsSuccess)
-            {
-                if (result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
-
-                return BadRequest(result.Message);
-            }
+                return StatusCode(result.StatusCode, result.Message);
 
             return Ok(result.Data);
         }
@@ -77,14 +58,7 @@ namespace PowerGuard.WebApi.Controllers
             var result = await _consumptionService.GetConsumptionLogsAsync(departmentId, pageNumber, pageSize);
 
             if (!result.IsSuccess)
-            {
-                if (result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
-
-                return BadRequest(result.Message);
-            }
+                return StatusCode(result.StatusCode, result.Message);
 
             return Ok(result.Data);
         }

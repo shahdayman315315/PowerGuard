@@ -78,22 +78,16 @@ namespace PowerGuard.WebApi.Controllers
         public async Task<IActionResult> ReviewFactory(ReviewFactoryDto dto)
         {
             var result = await _adminService.ReviewFactory(dto);
-            if (!result.IsSuccess)
-            {
-                if (result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
 
-                return BadRequest(result.Message);
-            }
+            if (!result.IsSuccess)
+                return StatusCode(result.StatusCode, result.Message);
 
             return Ok(result.Data);
         }
 
 
 
-        [HttpPut("reactivate-factory/{id}")]
+        [HttpPut("activate-factory/{id}")]
         public async Task<IActionResult> ReactivateFactory(int id)
         {
             var result =await _adminService.ReactivateFactoryAsync(id);
@@ -113,14 +107,7 @@ namespace PowerGuard.WebApi.Controllers
             var result = await _factoryService.DeleteFactory(id);
 
             if (!result.IsSuccess)
-            {
-                if (result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
-
-                return BadRequest(result.Message);
-            }
+                return StatusCode(result.StatusCode, result.Message);
 
             return Ok(result.Data);
         }

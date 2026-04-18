@@ -8,6 +8,6 @@ namespace PowerGuard.Application.Interfaces
 {
     public interface IRealTimeNotificationService
     {
-        Task SendAlertAsync(string userId, string message, string severity);
+        Task SendAlertAsync(string userId, string message, string severity,int alertId);
     }
 }

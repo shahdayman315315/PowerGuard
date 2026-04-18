@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PowerGuard.Application.Interfaces;
 
@@ -6,6 +7,7 @@ namespace PowerGuard.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles= "FactoryManager")]
     public class FactoryDashboardController : ControllerBase
     {
         private readonly IFactoryDashboardService _factoryDashboardService;

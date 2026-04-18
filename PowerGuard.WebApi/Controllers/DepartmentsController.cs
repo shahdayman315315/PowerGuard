@@ -28,12 +28,7 @@ namespace PowerGuard.WebApi.Controllers
 
             if (!result.IsSuccess)
             {
-                if (result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
-
-                return BadRequest(result.Message);
+                return StatusCode(result.StatusCode, result.Message);
             }
 
             return Ok(result.Data);
@@ -47,12 +42,7 @@ namespace PowerGuard.WebApi.Controllers
 
             if (!result.IsSuccess)
             {
-                if (result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
-
-                return BadRequest(result.Message);
+                return StatusCode(result.StatusCode, result.Message);
             }
 
             return Ok(result.Message);
@@ -66,12 +56,7 @@ namespace PowerGuard.WebApi.Controllers
 
             if (!result.IsSuccess)
             {
-                if (result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
-
-                return BadRequest(result.Message);
+                return StatusCode(result.StatusCode, result.Message);
             }
 
             return Ok(result.Data);
@@ -99,31 +84,21 @@ namespace PowerGuard.WebApi.Controllers
 
             if (!result.IsSuccess)
             {
-                if (result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
-
-                return BadRequest(result.Message);
+                return StatusCode(result.StatusCode, result.Message);
             }
 
             return Ok(result.Data);
         }
 
 
-        [HttpPut("{id}")]
+        [HttpPut("update/{id}")]
         public async Task<IActionResult> Update(int id, UpdateDepartmentDto dto)
         {
             var result= await _departmentsService.UpdateAsync(dto, id);
 
             if (!result.IsSuccess)
             {
-                if (result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
-
-                return BadRequest(result.Message);
+                return StatusCode(result.StatusCode, result.Message);
             }
 
             return Ok(result.Data);
@@ -139,12 +114,7 @@ namespace PowerGuard.WebApi.Controllers
 
             if (!result.IsSuccess)
             {
-                if (result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
-
-                return BadRequest(result.Message);
+                return StatusCode(result.StatusCode, result.Message);
             }
 
             return Ok(result.Data);
@@ -157,12 +127,7 @@ namespace PowerGuard.WebApi.Controllers
 
             if (!result.IsSuccess)
             {
-                if (result.StatusCode == 404)
-                {
-                    return NotFound(result.Message);
-                }
-
-                return BadRequest(result.Message);
+                return StatusCode(result.StatusCode, result.Message);
             }
 
             return Ok(result.Data);
