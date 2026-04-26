@@ -18,9 +18,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace PowerGuard.Infrastructure.Extensions
+namespace PowerGuard.Infrastructure
 {
-    public static class ServiceRegisteration
+    public static class DependencyInjection
     {
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {

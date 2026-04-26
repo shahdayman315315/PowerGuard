@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using PowerGuard.Application.Dtos;
 using PowerGuard.Application.Events;
 using PowerGuard.Application.Helpers;
@@ -24,15 +25,17 @@ namespace PowerGuard.Application.Services
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
         private readonly IEnumerable<IConsumptionEvaluationStrategy> _strategies;
+        private readonly IMemoryCache _memoryCache;
 
         public FactoryService(IUnitOfWork unitOfWork , IMapper mapper, UserManager<ApplicationUser> userManager
-            ,IMediator mediator, IEnumerable<IConsumptionEvaluationStrategy> strategies)
+            ,IMediator mediator, IEnumerable<IConsumptionEvaluationStrategy> strategies, IMemoryCache memoryCache)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _userManager = userManager;
             _mediator = mediator;
             _strategies = strategies;
+            _memoryCache = memoryCache;
         }
         public async Task<Result<CreateFactoryDto>> CreateFactory(CreateFactoryDto dto,string userId)
         {
@@ -58,6 +61,9 @@ namespace PowerGuard.Application.Services
                 {
                     return Result<CreateFactoryDto>.Failure("Error happened while setting the manager");
                 }
+
+                _memoryCache.Remove("ActiveFactoriesList");
+                _memoryCache.Remove("FactoriesList");
 
                 return Result<CreateFactoryDto>.Success(dto);
             }
@@ -98,6 +104,7 @@ namespace PowerGuard.Application.Services
 
             if (result > 0)
             {
+                _memoryCache.Remove("ActiveFactoriesList");
                 return Result<bool>.Success(true);
             }
 
@@ -107,18 +114,43 @@ namespace PowerGuard.Application.Services
 
         public async Task<Result<List<FactoryDto>>> GetActiveFactories()
         {
-            var activeFactories =await  _unitOfWork.Factories.Query.Include(f => f.Departments).Where(f => f.Status == FactoryStatus.Approved).ToListAsync();
+            string cacheKey = "ActiveFactoriesList";
 
-            var activeFactoryDtos = _mapper.Map<List<FactoryDto>>(activeFactories);
+            // محاولة الحصول على البيانات من الكاش
+            if (!_memoryCache.TryGetValue(cacheKey, out List<FactoryDto> activeFactoryDtos))
+            {
+                var activeFactories =await  _unitOfWork.Factories.Query.Include(f => f.Departments).Where(f => f.Status == FactoryStatus.Approved).ToListAsync();
+
+                activeFactoryDtos = _mapper.Map<List<FactoryDto>>(activeFactories);
+
+                var cacheOptions = new MemoryCacheEntryOptions()
+               .SetSlidingExpiration(TimeSpan.FromMinutes(20)) // لو محدش طلبها لمدة 20 دقايق تمسحها
+               .SetAbsoluteExpiration(TimeSpan.FromMinutes(30)); // تمسحها نهائياً بعد 30 دقيقة وتجددها
+
+                _memoryCache.Set(cacheKey, activeFactoryDtos, cacheOptions);
+            }
 
             return Result<List<FactoryDto>>.Success(activeFactoryDtos);
         }
 
         public async Task<Result<List<FactoryDto>>> GetAllFactories()
         {
-            var factories = await _unitOfWork.Factories.Query.Include(f=>f.Departments).ToListAsync();
+            string cacheKey = "FactoriesList";
 
-            var factoryDtos = _mapper.Map<List<FactoryDto>>(factories);
+            // محاولة الحصول على البيانات من الكاش
+            if (!_memoryCache.TryGetValue(cacheKey, out List<FactoryDto> factoryDtos))
+            {
+                var factories = await _unitOfWork.Factories.Query.Include(f=>f.Departments).ToListAsync();
+
+                factoryDtos = _mapper.Map<List<FactoryDto>>(factories);
+
+                var cacheOptions = new MemoryCacheEntryOptions()
+              .SetSlidingExpiration(TimeSpan.FromMinutes(20)) // لو محدش طلبها لمدة 20 دقايق تمسحها
+              .SetAbsoluteExpiration(TimeSpan.FromMinutes(30)); // تمسحها نهائياً بعد 30 دقيقة وتجددها
+
+                _memoryCache.Set(cacheKey, factoryDtos, cacheOptions);
+
+            }
 
             return Result<List<FactoryDto>>.Success(factoryDtos);
         }
@@ -155,13 +187,15 @@ namespace PowerGuard.Application.Services
                 return Result<bool>.Failure("Factory not found.",404);
             }
 
-            var currentTotalFactoryConsumption = await _unitOfWork.Departments.Query
-               .Where(d => d.FactoryId == factoryId )
-               .Select(d => d.ConsumptionLogs
-                   .OrderByDescending(log => log.CapturedAt)
-                   .Select(log => log.ConsumptionValue)
-                   .FirstOrDefault()) // بياخد آخر قيمة للقسم ده، لو مفيش هتبقى 0
-               .SumAsync();
+            var departmentConsumptions = await _unitOfWork.Departments.Query
+                 .Where(d => d.FactoryId == factoryId)
+                 .Select(d => d.ConsumptionLogs
+                 .OrderByDescending(log => log.CapturedAt)
+                 .Select(log => log.ConsumptionValue)
+                 .FirstOrDefault())
+                 .ToListAsync(); // اسحبيهم كـ List الأول
+
+            var currentTotalFactoryConsumption = departmentConsumptions.Sum();
 
             var factoryStatus = ConsumptionStatus.Normal;
             if (factory.CurrentConsumptionLimit.HasValue)
@@ -222,6 +256,9 @@ namespace PowerGuard.Application.Services
 
             if (result > 0)
             {
+                _memoryCache.Remove("ActiveFactoriesList");
+                _memoryCache.Remove("FactoriesList");
+
                 var factoryDto = _mapper.Map<FactoryDto>(factory);
                 return Result<FactoryDto>.Success(factoryDto);
             }

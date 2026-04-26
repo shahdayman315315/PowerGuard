@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using PowerGuard.Application.Dtos;
+using PowerGuard.Application.Features.Auth.Register;
 using PowerGuard.Domain.Models;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,9 @@ namespace PowerGuard.Application.Profiles
     {
         public AuthProfile()
         {
-            CreateMap<RegisterDto, ApplicationUser>().ReverseMap();
+            CreateMap<RegisterCommand, ApplicationUser>().ReverseMap();
+            CreateMap<RegisterDto, RegisterCommandHandler>().ReverseMap();
+
             CreateMap<RegisterManagerDto,ApplicationUser>().
                 ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.FullName))
                 .ForSourceMember(src => src.DepartmentId, opt => opt.DoNotValidate());

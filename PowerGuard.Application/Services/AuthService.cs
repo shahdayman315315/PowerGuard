@@ -151,6 +151,7 @@ namespace PowerGuard.Application.Services
             return new AuthResultDto
             {
                 Token = new JwtSecurityTokenHandler().WriteToken(jwtToken),
+                Role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? string.Empty,
                 IsSuccess = true,
                 Message = "Token refreshed successfully",
                 UserName = user.UserName,

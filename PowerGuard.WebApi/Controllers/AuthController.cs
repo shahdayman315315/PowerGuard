@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PowerGuard.Application.Dtos;
+using PowerGuard.Application.Features.Auth.Login;
+using PowerGuard.Application.Features.Auth.Register;
 using PowerGuard.Application.Interfaces;
 
 namespace PowerGuard.WebApi.Controllers
@@ -9,25 +13,29 @@ namespace PowerGuard.WebApi.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService _authService;
-        public AuthController(IAuthService authService)
+        private readonly IMediator _mediator;
+        private readonly IMapper _mapper;
+        public AuthController(IMediator mediator,IMapper mapper)
         {
-            _authService = authService;
+            _mediator = mediator;
+            _mapper = mapper;
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto registerDto)
         {
-            var result=await _authService.RegisterAsync(registerDto);
+            var command=_mapper.Map<RegisterCommand>(registerDto);  
+
+            var result=await _mediator.Send(command);
 
             if (!result.IsSuccess)
             {
                 return BadRequest(result.Message);
             }
 
-            if (!string.IsNullOrEmpty(result.RefreshToken))
+            if (!string.IsNullOrEmpty(result.Data!.RefreshToken))
             {
-                SetRefreshTokenInCookie(result.RefreshToken, result.RefreshTokenExpiration);
+                SetRefreshTokenInCookie(result.Data!.RefreshToken, result.Data!.RefreshTokenExpiration);
             }
 
             return Ok(result);
@@ -37,16 +45,17 @@ namespace PowerGuard.WebApi.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto dto)
         {
-            var result = await _authService.LoginAsync(dto);
+            var command=_mapper.Map<LoginCommand>(dto);
+            var result = await _mediator.Send(command);
 
             if (!result.IsSuccess)
             {
                 return Unauthorized(result.Message);
             }
 
-            if (!string.IsNullOrEmpty(result.RefreshToken))
+            if (!string.IsNullOrEmpty(result.Data!.RefreshToken))
             {
-                SetRefreshTokenInCookie(result.RefreshToken, result.RefreshTokenExpiration);
+                SetRefreshTokenInCookie(result.Data!.RefreshToken, result.Data!.RefreshTokenExpiration);
             }
 
             return Ok(result);
