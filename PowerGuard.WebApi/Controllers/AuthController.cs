@@ -4,7 +4,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PowerGuard.Application.Dtos;
 using PowerGuard.Application.Features.Auth.Login;
+using PowerGuard.Application.Features.Auth.Password.ForgetPassword;
+using PowerGuard.Application.Features.Auth.Password.ResetPassword;
+using PowerGuard.Application.Features.Auth.Password.VerifyOtp;
+using PowerGuard.Application.Features.Auth.RefreshToken;
 using PowerGuard.Application.Features.Auth.Register;
+using PowerGuard.Application.Features.Auth.RevokeRefreshToken;
 using PowerGuard.Application.Interfaces;
 
 namespace PowerGuard.WebApi.Controllers
@@ -38,7 +43,7 @@ namespace PowerGuard.WebApi.Controllers
                 SetRefreshTokenInCookie(result.Data!.RefreshToken, result.Data!.RefreshTokenExpiration);
             }
 
-            return Ok(result);
+            return Ok(result.Data);
         }
 
 
@@ -58,7 +63,7 @@ namespace PowerGuard.WebApi.Controllers
                 SetRefreshTokenInCookie(result.Data!.RefreshToken, result.Data!.RefreshTokenExpiration);
             }
 
-            return Ok(result);
+            return Ok(result.Data);
         }
 
 
@@ -79,19 +84,20 @@ namespace PowerGuard.WebApi.Controllers
                 return BadRequest("Tokens are required");
             }
 
-            var result = await _authService.RefreshTokenAsync(dto);
+            var command=_mapper.Map<RefreshTokenCommand>(dto);
+            var result = await _mediator.Send(command);
 
             if (!result.IsSuccess)
             {
                 return Unauthorized(result.Message);
             }
 
-            if (!string.IsNullOrEmpty(result.RefreshToken))
+            if (!string.IsNullOrEmpty(result.Data!.RefreshToken))
             {
-                SetRefreshTokenInCookie(result.RefreshToken, result.RefreshTokenExpiration);
+                SetRefreshTokenInCookie(result.Data!.RefreshToken, result.Data!.RefreshTokenExpiration);
             }
 
-            return Ok(result);
+            return Ok(result.Data);
         }
 
 
@@ -105,9 +111,10 @@ namespace PowerGuard.WebApi.Controllers
                 return BadRequest("Token is required");
             }
 
-            var result = await _authService.RevokeRefreshTokenAsync(token);
+            var command=new RevokeRefreshTokenCommand(refreshToken=refreshToken);
+            var result = await _mediator.Send(command);
 
-            if (!result)
+            if (!result.IsSuccess)
             {
                 return BadRequest("Token revocation failed");
             }
@@ -128,9 +135,10 @@ namespace PowerGuard.WebApi.Controllers
                 return BadRequest("Token is required");
             }
 
-            var result = await _authService.RevokeRefreshTokenAsync(token);
+            var command = new RevokeRefreshTokenCommand(refreshToken = refreshToken);
+            var result = await _mediator.Send(command);
 
-            if (!result)
+            if (!result.IsSuccess)
             {
                 return BadRequest("Logout failed");
             }
@@ -143,7 +151,8 @@ namespace PowerGuard.WebApi.Controllers
         [HttpPost("forget-password")]
         public async Task<IActionResult> ForgetPassword(ForgetPasswordDto dto)
         {
-            var result = await _authService.RequestPasswordResetAsync(dto);
+            var command=new ForgetPasswordCommand(dto.Email);
+            var result = await _mediator.Send(command);
 
             if (!result.IsSuccess)
             {
@@ -156,7 +165,8 @@ namespace PowerGuard.WebApi.Controllers
         [HttpPost("verify-otp")]
         public async Task<IActionResult> VerifyOtp(VerifyOtpDto dto)
         {
-            var result = await _authService.VerifyOtpAsync(dto);
+            var command=_mapper.Map<VerifyOtpCommand>(dto);
+            var result = await _mediator.Send(command);
 
             if (!result.IsSuccess)
             {
@@ -169,7 +179,8 @@ namespace PowerGuard.WebApi.Controllers
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
         {
-            var result = await _authService.ResetPasswordAsync(dto);
+            var command=_mapper.Map<ResetPasswordCommand>(dto);
+            var result = await _mediator.Send(command);
 
             if (!result.IsSuccess)
             {

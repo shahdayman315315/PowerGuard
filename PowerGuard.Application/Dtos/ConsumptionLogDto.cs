@@ -11,12 +11,10 @@ namespace PowerGuard.Application.Dtos
 {
     public class ConsumptionLogDto
     {
-        [Required,Range(0, double.MaxValue)]
         public decimal ConsumptionValue { get; set; }
 
         public DateTime CapturedAt { get; set; }= DateTime.UtcNow;
 
-        [Required]
         public int DepartmentId { get; set; }
     }
 }

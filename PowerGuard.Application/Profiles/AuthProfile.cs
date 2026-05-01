@@ -1,5 +1,8 @@
 ﻿using AutoMapper;
 using PowerGuard.Application.Dtos;
+using PowerGuard.Application.Features.Auth.Password.ResetPassword;
+using PowerGuard.Application.Features.Auth.Password.VerifyOtp;
+using PowerGuard.Application.Features.Auth.RefreshToken;
 using PowerGuard.Application.Features.Auth.Register;
 using PowerGuard.Domain.Models;
 using System;
@@ -16,10 +19,14 @@ namespace PowerGuard.Application.Profiles
         {
             CreateMap<RegisterCommand, ApplicationUser>().ReverseMap();
             CreateMap<RegisterDto, RegisterCommandHandler>().ReverseMap();
+            CreateMap<RefreshTokenCommand, RefreshTokenDto>().ReverseMap();
 
             CreateMap<RegisterManagerDto,ApplicationUser>().
                 ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.FullName))
                 .ForSourceMember(src => src.DepartmentId, opt => opt.DoNotValidate());
+
+            CreateMap<ResetPasswordDto, ResetPasswordCommand>().ReverseMap();
+            CreateMap<VerifyOtpDto, VerifyOtpCommand>().ReverseMap();
         }
     }
 }

@@ -39,76 +39,12 @@ namespace PowerGuard.Application.Services
         }
         public async Task<Result<CreateFactoryDto>> CreateFactory(CreateFactoryDto dto,string userId)
         {
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Result<CreateFactoryDto>.Failure("User ID is missing.");
-            }
-
-            var factory = _mapper.Map<Factory>(dto);
-            factory.ManagerId= userId;
-
-            await _unitOfWork.Factories.AddAsync(factory);
-            var result=await _unitOfWork.SaveChangesAsync();
-
-            if (result > 0)
-            {
-                var manager = await _userManager.FindByIdAsync(userId);
-                manager.FactoryId = factory.Id;
-
-                var updateResult = await _userManager.UpdateAsync(manager);
-
-                if (!updateResult.Succeeded)
-                {
-                    return Result<CreateFactoryDto>.Failure("Error happened while setting the manager");
-                }
-
-                _memoryCache.Remove("ActiveFactoriesList");
-                _memoryCache.Remove("FactoriesList");
-
-                return Result<CreateFactoryDto>.Success(dto);
-            }
-
-            return Result<CreateFactoryDto>.Failure("Failed to save the factory to the database.");
+            
         }
 
         public async Task<Result<bool>> DeleteFactory(int id)
         {
-            var factory = await _unitOfWork.Factories.Query.Include(f => f.Manager)
-                .Include(f => f.Departments)
-                .ThenInclude(d => d.Manager)
-                .FirstOrDefaultAsync(f => f.Id == id);
-
-            if (factory is null )
-            {
-                return Result<bool>.Failure("Factory not found.",404);
-            }
-
-            factory.Status = FactoryStatus.Deactivated;
-             _unitOfWork.Factories.Update(factory);
-            //تعطيل مدير المصنع
-            if (factory.Manager != null)
-            {
-                factory.Manager.LockoutEnd = DateTimeOffset.MaxValue; // قفل الحساب
-            }
-
-            // تعطيل مديري الأقسام
-            foreach (var dept in factory.Departments)
-            {
-                if (dept.Manager != null)
-                {
-                    dept.Manager.LockoutEnd = DateTimeOffset.MaxValue;
-                }
-            }
-
-            var result = await _unitOfWork.SaveChangesAsync();
-
-            if (result > 0)
-            {
-                _memoryCache.Remove("ActiveFactoriesList");
-                return Result<bool>.Success(true);
-            }
-
-            return Result<bool>.Failure("Failed to deactivate the factory in the database.");
+            
 
         }
 
@@ -239,31 +175,10 @@ namespace PowerGuard.Application.Services
             return Result<bool>.Failure("Failed to update the consumption limit in the database.");
         }
 
-        
+
 
         public async Task<Result<FactoryDto>> UpdateFactory(int id, UpdateFactoryDto dto)
         {
-            var factory = await _unitOfWork.Factories.Query.Include(f => f.Departments).FirstOrDefaultAsync(f => f.Id == id);
-
-            if (factory is null)
-            {
-                return Result<FactoryDto>.Failure("Factory not found.",404);
-            }
-
-            _mapper.Map(dto, factory);
-            _unitOfWork.Factories.Update(factory);
-            var result = await _unitOfWork.SaveChangesAsync();
-
-            if (result > 0)
-            {
-                _memoryCache.Remove("ActiveFactoriesList");
-                _memoryCache.Remove("FactoriesList");
-
-                var factoryDto = _mapper.Map<FactoryDto>(factory);
-                return Result<FactoryDto>.Success(factoryDto);
-            }
-
-            return Result<FactoryDto>.Failure("Failed to update the factory in the database.");
         }
     }
 }

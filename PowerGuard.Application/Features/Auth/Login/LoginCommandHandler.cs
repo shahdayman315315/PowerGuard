@@ -79,7 +79,7 @@ namespace PowerGuard.Application.Features.Auth.Login
 
             var token = await _tokenService.GenerateToken(existUser);
             var refreshToken = _tokenService.GenerateRefreshToken();
-            var refreshTokenEntity = new RefreshToken
+            var refreshTokenEntity = new Domain.Models.RefreshToken
             {
                 Token = refreshToken,
                 UserId = existUser.Id,
@@ -87,8 +87,8 @@ namespace PowerGuard.Application.Features.Auth.Login
                 CreatedOn = DateTime.UtcNow
             };
 
-            await _unitOfWork.RefreshTokens.AddAsync(refreshTokenEntity);
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.RefreshTokens.AddAsync(refreshTokenEntity, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var authDto = new AuthResultDto
             {

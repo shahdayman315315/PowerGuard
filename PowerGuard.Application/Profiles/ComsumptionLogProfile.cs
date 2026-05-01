@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using PowerGuard.Application.Dtos;
+using PowerGuard.Application.Features.Consumption.Commands.EnterConsumption;
 using PowerGuard.Domain.Models;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,9 @@ namespace PowerGuard.Application.Profiles
         public ComsumptionLogProfile()
         {
             CreateMap<ConsumptionLog,ConsumptionLogDto>().ReverseMap();
+
+            CreateMap<ConsumptionLog, EnterConsumptionCommand>()
+                .ReverseMap();
         }
     }
 }

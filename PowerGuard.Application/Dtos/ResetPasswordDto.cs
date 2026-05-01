@@ -9,13 +9,10 @@ namespace PowerGuard.Application.Dtos
 {
     public class ResetPasswordDto
     {
-        [Required,EmailAddress]
-        public string Email { get; set; }
+        public string Email { get; set; }= null!;
 
-        [Required]
-        public string ResetToken { get; set; }
+        public string ResetToken { get; set; }= null!;
 
-        [Required]
-        public string NewPassword { get; set; }
+        public string NewPassword { get; set; }= null!;
     }
 }

@@ -8,9 +8,7 @@ using System.Threading.Tasks;
 namespace PowerGuard.Application.Dtos
 {
     public class ForgetPasswordDto
-    {
-        [Required]
-        [EmailAddress] 
-        public string Email { get; set; }
+    {   
+        public string Email { get; set; }= null!;
     }
 }
