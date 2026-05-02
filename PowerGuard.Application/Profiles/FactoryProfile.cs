@@ -25,6 +25,8 @@ namespace PowerGuard.Application.Profiles
                            opt => opt.MapFrom(src => src.Manager.UserName))
                 .ForMember(dest => dest.ManagerEmail,
                              opt => opt.MapFrom(src => src.Manager.Email));
+
+            
         }
     }
 }
