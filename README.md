@@ -5,38 +5,155 @@
 [![CQRS](https://img.shields.io/badge/Pattern-CQRS_%2F_MediatR-green.svg)]()
 [![Azure Deployed](https://img.shields.io/badge/Deployment-Azure_App_Service-orange.svg)]()
 
-PowerGuard is an Enterprise-grade Industrial Energy Management System (EMS) designed to monitor, analyze, and optimize factory power consumption in real-time. Built on **.NET 8 Web API** following **Clean Architecture** and **Domain-Driven Design (DDD)** principles, the platform processes high-frequency IoT telemetry to prevent costly over-consumption penalties and detect equipment anomalies.
+PowerGuard is an Enterprise-grade Industrial Energy Management Web API engineered to log, track, and evaluate power consumption across large factories and complex organizations. Built on **.NET 8** following **Clean Architecture**, **CQRS**, and **Domain-Driven Design (DDD)** principles, the platform acts as the centralized system to eliminate energy waste, reduce electricity costs, and provide management with accurate, real-time insights into departmental and machine-level consumption.
 
 ---
 
 ## 🚀 Project Overview
 
-In heavy manufacturing industries, energy consumption overhead and peak-load penalties account for massive financial losses. **PowerGuard** bridges the gap between hardware telemetry and industrial operations. By ingesting real-time data from IoT smart meters, the system provides sub-metering insights across hierarchical factory structures, triggers real-time alerts via WebSockets, and evaluates energy efficiency using dynamic statistical strategies.
+### ❌ The Problem
+Large industrial facilities and multi-department organizations face exorbitant electricity costs due to inefficient energy usage and a critical lack of real-time monitoring. Currently, facility managers operate blindly, with no clear visibility into which specific departments, production lines, or individual machines consume the most power. This structural gap leads to undetected energy waste, operational bottlenecks, and unnecessary expenses.
+
+### ✔️ The Solution
+**PowerGuard** provides a smart, data-driven system designed to monitor and analyze electricity consumption accurately. By replacing manual audits with structured, real-time backend logging, the system maps the entire enterprise infrastructure. It allows management to isolate waste points, control high-consumption zones, benchmark resource allocation, and instantly receive critical over-consumption alerts.
 
 ---
 
-## ✨ Core Features
+## ✨ System Features
 
-* **Hierarchical Telemetry Ingestion:** Multi-level monitoring spanning from the entire corporate infrastructure down to individual factory zones, departments, and specific heavy machinery.
-* **Real-Time Threshold Alerting:** Instantaneous push notifications driven by **SignalR** when consumption breaches predefined safety thresholds.
-* **Dynamic Efficiency Evaluator:** Extensible rule-engine utilizing the **Strategy Design Pattern** to calculate consumption efficiency against production outputs.
-* **Enterprise Identity & RBAC:** Secure user onboarding and fine-grained Role-Based Access Control (Admin, Factory Manager, Maintenance Engineer).
-* **Resilient Data Pipeline:** Asynchronous, non-blocking telemetry endpoints optimized for continuous IoT data logging.
-
----
-
-## 🛠️ Tech Stack
-
-* **Backend Framework:** .NET 8 / ASP.NET Core Web API
-* **Database & ORM:** Microsoft SQL Server / Azure SQL Core | Entity Framework Core
-* **Real-Time Engine:** ASP.NET Core SignalR (WebSockets)
-* **Mediation & Messaging:** MediatR (In-Process Memory Bus)
-* **Security:** ASP.NET Core Identity | JWT (JSON Web Tokens) with Refresh Token Rotation
-* **Testing:** xUnit | FluentAssertions
-* **Cloud & DevOps:** Microsoft Azure (App Services, SQL Core) | GitHub Actions (CI/CD)
+* **Hierarchical Infrastructure Mapping:** Comprehensive backend model supporting structured organization trees (Corporate -> Individual Factories -> Production Zones -> Departments -> Specific Machinery).
+* **Data Logging & Meter Auditing API:** Optimized RESTful endpoints for recording precise electrical metrics (Voltage, Current, Kilowatt-hour) uploaded securely by administrators or authorized field systems.
+* **Real-Time Threshold Alerting:** Instantaneous push-notification framework driven by **SignalR Hubs**, broadcasting immediate warnings to active clients when a department's logged data breaches its safety boundaries.
+* **Dynamic Efficiency Evaluator Engine:** Extensible computation layer implementing the **Strategy Design Pattern** to analyze consumption figures dynamically against operational hours, production outputs, or asset classifications.
+* **Enterprise Identity & RBAC:** Secure user management and granular Role-Based Access Control enforcing strict separation of duties among Administrators, Facility Managers, and Maintenance Engineers.
 
 ---
 
-## 🏗️ Architecture & Design Patterns
+## 🛠️ Tech Stack & Tooling
 
-The backend is engineered using **Clean Architecture** to enforce a strict Separation of Concerns (SoC) and ensure the system remains independent of database frameworks or external UI clients.
+### Core Frameworks
+* **Backend Runtime:** .NET 8 (ASP.NET Core Web API)
+* **Database & ORM:** Microsoft SQL Server / Azure SQL DB | Entity Framework Core (Code-First approach)
+* **Asynchronous Mediation:** MediatR (In-Process Memory Bus)
+* **Real-Time Middleware:** ASP.NET Core SignalR (WebSockets fallback)
+
+### Security & Architecture Components
+* **Authentication:** ASP.NET Core Identity Framework
+* **Token Protocol:** JSON Web Tokens (JWT) with secure Refresh Token Rotation mechanisms
+* **Validation:** FluentValidation for incoming command/query body payloads
+
+### Cloud & DevOps Engineering
+* **Cloud Infrastructure:** Microsoft Azure (App Services for API hosting, Azure SQL for managed database)
+* **CI/CD Pipeline:** GitHub Actions automating code build and direct deployment artifacts to Azure slots.
+* **Development Utilities:** Postman for API testing, Git for version control.
+
+---
+
+## 🏗 `PowerGuard` Backend Architecture
+
+The backend enforces a strict **Separation of Concerns (SoC)** by strictly adhering to **Clean Architecture** patterns. This ensures the application core remains pure, highly testable, and isolated from UI frameworks or persistence layer breaking changes.
+
+┌─────────────────────────────────────────┐
+              │          PowerGuard.WebAPI              │
+              │   (Controllers, SignalR Hubs, Auth)     │
+              └────────────────────┬────────────────────┘
+                                   ▼
+              ┌─────────────────────────────────────────┐
+              │       PowerGuard.Infrastructure         │
+              │    (DbContext, Repositories, Identity)  │
+              └────────────────────┬────────────────────┘
+                                   ▼
+              ┌─────────────────────────────────────────┐
+              │         PowerGuard.Application          │
+              │      (CQRS Handlers, DTOs, Strategies)  │
+              └────────────────────┬────────────────────┘
+                                   ▼
+              ┌─────────────────────────────────────────┐
+              │           PowerGuard.Domain             │
+              │     (Entities, Enums, Value Objects)    │
+              └─────────────────────────────────────────┘
+
+              ### Key Design Patterns & Practices Implemented:
+
+1. **CQRS Pattern (via MediatR):** Separates system read queries from write commands. Write operations (`LogConsumptionCommand`) go through specific write paths without locking read queries (`GetDepartmentMetricsQuery`), increasing database performance and scalability.
+   
+2. **Strategy Design Pattern:** Encapsulates different energy evaluation algorithms. The engine switches evaluation strategies at runtime depending on the department type or active factory shift, ensuring high extensibility without modifying existing core classes (Open-Closed Principle).
+   
+3. **Repository & Unit of Work Patterns:** Abstracts data persistence mechanisms, ensuring the application layer interacts with an in-memory collection abstraction while handling multi-entity transaction saves inside a single transactional block safely.
+
+---
+
+## 🔒 Authentication & Security Architecture
+
+* **Stateless Token Exchange:** Authentication is managed via cryptographic **JWT** tokens passed through HTTP Authorization headers.
+* **Refresh Token Rotation:** Mitigates replay attacks. When a JWT expires, the frontend presents a single-use Refresh Token. The backend validates it, deletes the old instance, rotates the keys, and issues a new pair.
+* **Role-Based Authorization:** Endpoints are guarded with granular attributes (e.g., `[Authorize(Roles = "Admin, Manager")]`), shielding critical infrastructure configuration from baseline user roles.
+
+---
+
+## 🔌 API Architecture Overview
+
+All endpoints follow predictable RESTful structures utilizing correct HTTP verb semantics and standardized JSON response envelopes.
+
+| HTTP Method | Endpoint Path | Primary Purpose | Role Authorization |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/api/Auth/register` | Registers enterprise managers or system roles | Admin Only |
+| **POST** | `/api/Auth/login` | Validates credentials; returns JWT & Refresh Token | Public |
+| **POST** | `/api/Auth/refresh` | Rotates expired JWT via active refresh token | Public |
+| **GET** | `/api/Dashboard/summary` | Aggregates high-level organizational energy metrics | Admin / Manager |
+| **GET** | `/api/Departments/{id}` | Fetches real-time localized logs and current statistics| All Authenticated |
+| **POST** | `/api/Metrics/log` | Ingests new consumption entries (V, I, kWh) | Admin / Employee |
+
+---
+
+## 📂 Project Folder Structure
+
+```shadow
+PowerGuard/
+│
+├── .github/workflows/          # GitHub Actions CI/CD deployment configuration pipelines
+│
+├── PowerGuard.Domain/          # Core Business Models, Aggregate Roots, Custom Domain Exceptions
+│
+├── PowerGuard.Application/     # CQRS Commands/Queries, MediatR Handlers, Validation & Strategy Definitions
+│
+├── PowerGuard.Infrastructure/  # EF Core, Migrations, ApplicationDbContext, Identity Service Implementations
+│
+└── PowerGuard.WebAPI/          # Controllers, SignalR Hub Infrastructure, App Middleware, AppSettings
+
+💻 Local Execution & Setup
+Prerequisites
+.NET 8.0 SDK
+
+SQL Server (Express or LocalDB instance)
+
+Setup Steps
+
+1.Clone Project Core:
+git clone [https://github.com/shahdayman315315/PowerGuard.git](https://github.com/shahdayman315315/PowerGuard.git)
+cd PowerGuard
+
+2.Configure Database Connection:
+Navigate to PowerGuard.WebAPI/appsettings.json and adjust the ConnectionStrings:DefaultConnection to match your local SQL Server instance credentials.
+
+3.Execute Database Updates:
+Run the EF Core command to construct your tables and execute schema seeding:
+dotnet ef database update --project PowerGuard.Infrastructure --startup-project PowerGuard.WebAPI
+
+4.Launch Backend Service:
+dotnet run --project PowerGuard.WebAPI
+Open https://localhost:7193/swagger inside your web browser to explore and interact with the endpoints.
+
+☁️ Continuous Integration & Deployment (CI/CD)
+Deployment Target: Hosted live on Microsoft Azure App Services, utilizing an isolated Azure SQL Database instances layer.
+
+Pipeline Automation: Fully automated via GitHub Actions workflows (located in .github/workflows). Every Push or Pull Request targeting the main branch initializes a multi-stage runner that builds the codebase and pipelines compilation packages straight to Azure production slots seamlessly.
+
+📈 Future System Roadmap
+Distributed State Caching: Introducing a Redis layer to cache static organizational dashboards and reduce database access.
+
+Database Optimization: Implementing database table indexes on high-frequency metric log tables to maintain microsecond performance.
+
+IoT Gateway Transition: Enhancing the current API to directly support automated message streams from MQTT brokers.
+
+Developed by Shahd Ayman – Backend Software Engineer
