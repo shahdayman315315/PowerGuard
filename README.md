@@ -21,11 +21,15 @@ Large industrial facilities and multi-department organizations face exorbitant e
 
 ## ✨ System Features
 
+* **Role-Specific Professional Dashboards:** Tailored API metrics aggregation separating high-level data views into distinct operational dashboards:
+  * **Admin Dashboard:** System-wide visibility, user management control, global threshold configurations, and full enterprise logs.
+  * **Factory Manager Dashboard:** Operational overview of specific factory zones, historical efficiency charting, and cost allocation summaries.
+  * **Department Manager & Factory Manager Dashboards:** Granular localized consumption data tracking, live machine-level updates,Departments Consumption comparison , and instant threshold warnings.
 * **Hierarchical Infrastructure Mapping:** Comprehensive backend model supporting structured organization trees (Corporate -> Individual Factories -> Production Zones -> Departments -> Specific Machinery).
 * **Data Logging & Meter Auditing API:** Optimized RESTful endpoints for recording precise electrical metrics (Voltage, Current, Kilowatt-hour) uploaded securely by administrators or authorized field systems.
 * **Real-Time Threshold Alerting:** Instantaneous push-notification framework driven by **SignalR Hubs**, broadcasting immediate warnings to active clients when a department's logged data breaches its safety boundaries.
 * **Dynamic Efficiency Evaluator Engine:** Extensible computation layer implementing the **Strategy Design Pattern** to analyze consumption figures dynamically against operational hours, production outputs, or asset classifications.
-* **Enterprise Identity & RBAC:** Secure user management and granular Role-Based Access Control enforcing strict separation of duties among Administrators, Facility Managers, and Maintenance Engineers.
+* **Enterprise Identity & RBAC:** Secure user management and granular Role-Based Access Control enforcing strict separation of duties among Administrators, Factory Managers, and Maintenance Engineers.
 
 ---
 
@@ -89,8 +93,9 @@ All endpoints follow predictable RESTful structures utilizing correct HTTP verb 
 | **POST** | `/api/Auth/register` | Registers enterprise managers or system roles | Admin Only |
 | **POST** | `/api/Auth/login` | Validates credentials; returns JWT & Refresh Token | Public |
 | **POST** | `/api/Auth/refresh` | Rotates expired JWT via active refresh token | Public |
-| **GET** | `/api/Dashboard/summary` | Aggregates high-level organizational energy metrics | Admin / Manager |
-| **GET** | `/api/Departments/{id}` | Fetches real-time localized logs and current statistics| All Authenticated |
+| **GET** | `/api/Dashboard/admin` | Fetches global enterprise logs, users, and configurations | Admin Only |
+| **GET** | `/api/Dashboard/factory/{id}` | Aggregates localized zone metrics and cost histories | Factory Manager |
+| **GET** | `/api/Dashboard/department/{id}`| Retrieves live consumption statistics & active thresholds | All Authenticated |
 | **POST** | `/api/Metrics/log` | Ingests new consumption entries (V, I, kWh) | Admin / Employee |
 
 ---
