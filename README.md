@@ -49,31 +49,20 @@ Large industrial facilities and multi-department organizations face exorbitant e
 
 ---
 
-## 🏗 `PowerGuard` Backend Architecture
+## 🏗️ Backend Architecture
 
 The backend enforces a strict **Separation of Concerns (SoC)** by strictly adhering to **Clean Architecture** patterns. This ensures the application core remains pure, highly testable, and isolated from UI frameworks or persistence layer breaking changes.
 
-┌─────────────────────────────────────────┐
-              │          PowerGuard.WebAPI              │
-              │   (Controllers, SignalR Hubs, Auth)     │
-              └────────────────────┬────────────────────┘
-                                   ▼
-              ┌─────────────────────────────────────────┐
-              │       PowerGuard.Infrastructure         │
-              │    (DbContext, Repositories, Identity)  │
-              └────────────────────┬────────────────────┘
-                                   ▼
-              ┌─────────────────────────────────────────┐
-              │         PowerGuard.Application          │
-              │      (CQRS Handlers, DTOs, Strategies)  │
-              └────────────────────┬────────────────────┘
-                                   ▼
-              ┌─────────────────────────────────────────┐
-              │           PowerGuard.Domain             │
-              │     (Entities, Enums, Value Objects)    │
-              └─────────────────────────────────────────┘
+### Architectural Layers Mapping
 
-              ### Key Design Patterns & Practices Implemented:
+| Layer Name | Project Namespace | Primary Responsibilities & Components |
+| :--- | :--- | :--- |
+| **Presentation** | `PowerGuard.WebAPI` | API Controllers, SignalR Hub Infrastructure, App Middleware, AppSettings |
+| **Infrastructure** | `PowerGuard.Infrastructure` | EF Core Data Context, Migrations, Repository Implementations, Identity Services |
+| **Application** | `PowerGuard.Application` | CQRS Commands/Queries, MediatR Handlers, Input Validation, Strategy Interface Definitions |
+| **Domain** | `PowerGuard.Domain` | Core Business Models, Aggregate Roots, Custom Domain Exceptions, Enums |
+
+### Key Design Patterns & Practices Implemented
 
 1. **CQRS Pattern (via MediatR):** Separates system read queries from write commands. Write operations (`LogConsumptionCommand`) go through specific write paths without locking read queries (`GetDepartmentMetricsQuery`), increasing database performance and scalability.
    
@@ -108,52 +97,55 @@ All endpoints follow predictable RESTful structures utilizing correct HTTP verb 
 
 ## 📂 Project Folder Structure
 
-```shadow
-PowerGuard/
-│
-├── .github/workflows/          # GitHub Actions CI/CD deployment configuration pipelines
-│
-├── PowerGuard.Domain/          # Core Business Models, Aggregate Roots, Custom Domain Exceptions
-│
-├── PowerGuard.Application/     # CQRS Commands/Queries, MediatR Handlers, Validation & Strategy Definitions
-│
-├── PowerGuard.Infrastructure/  # EF Core, Migrations, ApplicationDbContext, Identity Service Implementations
-│
-└── PowerGuard.WebAPI/          # Controllers, SignalR Hub Infrastructure, App Middleware, AppSettings
+* **.github/workflows/**: GitHub Actions CI/CD deployment configuration pipelines
+* **PowerGuard.Domain/**: Core Business Models, Aggregate Roots, Custom Domain Exceptions
+* **PowerGuard.Application/**: CQRS Commands/Queries, MediatR Handlers, Validation & Strategy Definitions
+* **PowerGuard.Infrastructure/**: EF Core, Migrations, ApplicationDbContext, Identity Service Implementations
+* **PowerGuard.WebAPI/**: Controllers, SignalR Hub Infrastructure, App Middleware, AppSettings
 
-💻 Local Execution & Setup
-Prerequisites
-.NET 8.0 SDK
+---
 
-SQL Server (Express or LocalDB instance)
+## 💻 Local Execution & Setup
 
-Setup Steps
+### Prerequisites
+* .NET 8.0 SDK
+* SQL Server (Express or LocalDB instance)
 
-1.Clone Project Core:
-git clone [https://github.com/shahdayman315315/PowerGuard.git](https://github.com/shahdayman315315/PowerGuard.git)
-cd PowerGuard
+### Setup Steps
 
-2.Configure Database Connection:
-Navigate to PowerGuard.WebAPI/appsettings.json and adjust the ConnectionStrings:DefaultConnection to match your local SQL Server instance credentials.
+1. **Clone Project Core:**
+   Run the following command in your terminal to clone the repository:
+   `git clone https://github.com/shahdayman315315/PowerGuard.git`
 
-3.Execute Database Updates:
-Run the EF Core command to construct your tables and execute schema seeding:
-dotnet ef database update --project PowerGuard.Infrastructure --startup-project PowerGuard.WebAPI
+2. **Navigate to Project Directory:**
+   `cd PowerGuard`
 
-4.Launch Backend Service:
-dotnet run --project PowerGuard.WebAPI
-Open https://localhost:7193/swagger inside your web browser to explore and interact with the endpoints.
+3. **Configure Database Connection:**
+   Navigate to `PowerGuard.WebAPI/appsettings.json` and adjust the `ConnectionStrings:DefaultConnection` to match your local SQL Server instance credentials.
 
-☁️ Continuous Integration & Deployment (CI/CD)
-Deployment Target: Hosted live on Microsoft Azure App Services, utilizing an isolated Azure SQL Database instances layer.
+4. **Execute Database Updates:**
+   Run the EF Core command to construct your tables and execute schema seeding:
+   `dotnet ef database update --project PowerGuard.Infrastructure --startup-project PowerGuard.WebAPI`
 
-Pipeline Automation: Fully automated via GitHub Actions workflows (located in .github/workflows). Every Push or Pull Request targeting the main branch initializes a multi-stage runner that builds the codebase and pipelines compilation packages straight to Azure production slots seamlessly.
+5. **Launch Backend Service:**
+   `dotnet run --project PowerGuard.WebAPI`
+   
+*After running, open `https://localhost:7193/swagger` inside your web browser to explore and interact with the endpoints.*
 
-📈 Future System Roadmap
-Distributed State Caching: Introducing a Redis layer to cache static organizational dashboards and reduce database access.
+---
 
-Database Optimization: Implementing database table indexes on high-frequency metric log tables to maintain microsecond performance.
+## ☁️ Continuous Integration & Deployment (CI/CD)
 
-IoT Gateway Transition: Enhancing the current API to directly support automated message streams from MQTT brokers.
+* **Deployment Target:** Hosted live on **Microsoft Azure App Services**, utilizing an isolated **Azure SQL Database** instances layer.
+* **Pipeline Automation:** Fully automated via **GitHub Actions** workflows (located in `.github/workflows`). Every Push or Pull Request targeting the `main` branch initializes a multi-stage runner that builds the codebase and pipelines compilation packages straight to Azure production slots seamlessly.
 
-Developed by Shahd Ayman – Backend Software Engineer
+---
+
+## 📈 Future System Roadmap
+
+* **Distributed State Caching:** Introducing a **Redis** layer to cache static organizational dashboards and reduce database access.
+* **Database Optimization:** Implementing database table indexes on high-frequency metric log tables to maintain microsecond performance.
+* **IoT Gateway Transition:** Enhancing the current API to directly support automated message streams from MQTT brokers.
+
+---
+*Developed by Shahd Ayman – Backend Software Engineer*
