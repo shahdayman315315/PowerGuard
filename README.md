@@ -23,8 +23,8 @@ Large industrial facilities and multi-department organizations face exorbitant e
 
 * **Role-Specific Professional Dashboards:** Tailored API metrics aggregation separating high-level data views into distinct operational dashboards:
   * **Admin Dashboard:** System-wide visibility, user management control, global threshold configurations, and full enterprise logs.
-  * **Factory Manager Dashboard:** Operational overview of specific factory zones, historical efficiency charting, and cost allocation summaries.
-  * **Department Manager & Factory Manager Dashboards:** Granular localized consumption data tracking, live machine-level updates,Departments Consumption comparison , and instant threshold warnings.
+  * **Factory Manager Dashboard:** Operational overview of specific factory zones, historical efficiency charting ,Departments Consumption comparison and cost allocation summaries.
+  * **Department Manager Dashboard:** Granular localized consumption data tracking, live machine-level updates, and instant threshold warnings.
 * **Hierarchical Infrastructure Mapping:** Comprehensive backend model supporting structured organization trees (Corporate -> Individual Factories -> Production Zones -> Departments -> Specific Machinery).
 * **Data Logging & Meter Auditing API:** Optimized RESTful endpoints for recording precise electrical metrics (Voltage, Current, Kilowatt-hour) uploaded securely by administrators or authorized field systems.
 * **Real-Time Threshold Alerting:** Instantaneous push-notification framework driven by **SignalR Hubs**, broadcasting immediate warnings to active clients when a department's logged data breaches its safety boundaries.
