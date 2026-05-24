@@ -93,10 +93,10 @@ All endpoints follow predictable RESTful structures utilizing correct HTTP verb 
 | **POST** | `/api/Auth/register` | Registers enterprise managers or system roles | Admin Only |
 | **POST** | `/api/Auth/login` | Validates credentials; returns JWT & Refresh Token | Public |
 | **POST** | `/api/Auth/refresh` | Rotates expired JWT via active refresh token | Public |
-| **GET** | `/api/Dashboard/admin` | Fetches global enterprise logs, users, and configurations | Admin Only |
-| **GET** | `/api/Dashboard/factory/{id}` | Aggregates localized zone metrics and cost histories | Factory Manager |
-| **GET** | `/api/Dashboard/department/{id}`| Retrieves live consumption statistics & active thresholds | All Authenticated |
-| **POST** | `/api/Metrics/log` | Ingests new consumption entries (V, I, kWh) | Admin / Employee |
+| **GET** | `/api/admin/..` | Fetches global enterprise logs, users, and configurations | Admin Only |
+| **GET** | `/api/DepartmentDashboard/..` | Aggregates localized zone metrics and cost histories | Factory Manager |
+| **GET** | `/api/FactoryDashboard/..`| Retrieves live consumption statistics & active thresholds | All Authenticated |
+| **POST** | `/api/ConsumptionLogs` | Ingests new consumption entries (V, I, kWh) | Admin / Employee |
 
 ---
 
