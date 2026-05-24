@@ -3,7 +3,6 @@
 [![.NET 8](https://img.shields.io/badge/.NET-8.0-blueviolet.svg)](https://dotnet.microsoft.com/download/dotnet/8.0)
 [![Clean Architecture](https://img.shields.io/badge/Architecture-Clean_Architecture-blue.svg)]()
 [![CQRS](https://img.shields.io/badge/Pattern-CQRS_%2F_MediatR-green.svg)]()
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)]()
 [![Azure Deployed](https://img.shields.io/badge/Deployment-Azure_App_Service-orange.svg)]()
 
 PowerGuard is an Enterprise-grade Industrial Energy Management System (EMS) designed to monitor, analyze, and optimize factory power consumption in real-time. Built on **.NET 8 Web API** following **Clean Architecture** and **Domain-Driven Design (DDD)** principles, the platform processes high-frequency IoT telemetry to prevent costly over-consumption penalties and detect equipment anomalies.
