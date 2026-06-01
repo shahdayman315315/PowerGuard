@@ -1,37 +1,34 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using PowerGuard.Application.Dtos;
 using PowerGuard.Application.Helpers;
 using PowerGuard.Application.Interfaces;
 using PowerGuard.Domain.Enums;
 using PowerGuard.Domain.Interfaces;
+using PowerGuard.Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PowerGuard.Application.Services
+namespace PowerGuard.Application.Features.DepartmentManagerDashboard.Queries.GetDepartmentDailySummary
 {
-    public class DepartmentDashboardService : IDepartmentDashboardService
+    public class GetDepartmentDailySummaryQueryHandler :
+        IRequestHandler<GetDepartmentDailySummaryQuery, Result<DepartmentDailyConsumptionSummaryDto>>
     {
-        private readonly IConsumptionService _consumptionService;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEnumerable<IConsumptionEvaluationStrategy> _strategies;
-        public DepartmentDashboardService(IConsumptionService consumptionService, IHttpContextAccessor httpContextAccessor,
-            IUnitOfWork unitOfWork, IEnumerable<IConsumptionEvaluationStrategy> strategies)
+
+        public GetDepartmentDailySummaryQueryHandler(IUnitOfWork unitOfWork, IEnumerable<IConsumptionEvaluationStrategy> strategies)
         {
-            _consumptionService = consumptionService;
-            _httpContextAccessor = httpContextAccessor;
             _unitOfWork = unitOfWork;
             _strategies = strategies;
-
         }
-
-        public async Task<Result<DepartmentDailyConsumptionSummaryDto>> GetDepartmentDailySummaryAsync(int departmentId)
+        public async Task<Result<DepartmentDailyConsumptionSummaryDto>> Handle(GetDepartmentDailySummaryQuery request, CancellationToken cancellationToken)
         {
-            var department = await _unitOfWork.Departments.GetByIdAsync(departmentId);
+            var department = await _unitOfWork.Departments.GetByIdAsync(request.departmentId, cancellationToken);
             if (department is null)
             {
                 return Result<DepartmentDailyConsumptionSummaryDto>.Failure("Department not found", 404);
@@ -40,16 +37,16 @@ namespace PowerGuard.Application.Services
             var date = DateTime.UtcNow.Date;
 
             var latestLog = await _unitOfWork.ConsumptionLogs.Query.AsNoTracking()
-                .Where(l => l.DepartmentId == departmentId && l.CapturedAt >= date).OrderByDescending(l => l.CapturedAt)
-                .FirstOrDefaultAsync();
+                .Where(l => l.DepartmentId == request.departmentId && l.CapturedAt >= date).OrderByDescending(l => l.CapturedAt)
+                .FirstOrDefaultAsync(cancellationToken);
 
             var latestLogBeforeToday = await _unitOfWork.ConsumptionLogs.Query.AsNoTracking()
-                .Where(l => l.DepartmentId == departmentId && l.CapturedAt < date).OrderByDescending(l => l.CapturedAt)
-                .FirstOrDefaultAsync();
+                .Where(l => l.DepartmentId == request.departmentId && l.CapturedAt < date).OrderByDescending(l => l.CapturedAt)
+                .FirstOrDefaultAsync(cancellationToken);
 
             var latestLogBeforeYesterday = await _unitOfWork.ConsumptionLogs.Query.AsNoTracking()
-                .Where(l => l.DepartmentId == departmentId && l.CapturedAt < date.AddDays(-1)).OrderByDescending(l => l.CapturedAt)
-                .FirstOrDefaultAsync();
+                .Where(l => l.DepartmentId == request.departmentId && l.CapturedAt < date.AddDays(-1)).OrderByDescending(l => l.CapturedAt)
+                .FirstOrDefaultAsync(cancellationToken);
 
             var actualConsumptionForToday = Math.Max(0, (latestLog == null ? 0 : latestLog.ConsumptionValue) - (latestLogBeforeToday == null ? 0 : latestLogBeforeToday.ConsumptionValue));
 
@@ -92,49 +89,6 @@ namespace PowerGuard.Application.Services
             };
 
             return Result<DepartmentDailyConsumptionSummaryDto>.Success(summaryDto);
-        }
-
-        public async Task<Result<IEnumerable<ChartPointDto>>> GetDepartmentHourlyChartAsync(int departmentId)
-        {
-            var department = await _unitOfWork.Departments.GetByIdAsync(departmentId);
-            if (department is null)
-            {
-                return Result<IEnumerable<ChartPointDto>>.Failure("Department not found", 404);
-            }
-
-            var date = DateTime.UtcNow.Date;
- 
-            var latestLogBeforeToday=await _unitOfWork.ConsumptionLogs.Query
-                .AsNoTracking().Where(l=>l.DepartmentId == departmentId && l.CapturedAt<date)
-                .OrderByDescending(l=>l.CapturedAt)
-                 .Select(l => new {  l.ConsumptionValue,  l.CapturedAt })
-                .FirstOrDefaultAsync();
-
-            var logsToday = await _unitOfWork.ConsumptionLogs.Query
-                .AsNoTracking().Where(l => l.DepartmentId == departmentId && l.CapturedAt >= date)
-                .OrderBy(l => l.CapturedAt)
-                .Select(l=> new {  l.ConsumptionValue , l.CapturedAt})
-                .ToListAsync();
-
-            var previous=latestLogBeforeToday;
-
-            var dtos=new List<ChartPointDto>();
-
-            foreach (var l in logsToday)
-            {
-                var consumptionValue =Math.Max(0,l.ConsumptionValue - (previous== null? 0 :previous.ConsumptionValue));
-                var time = l.CapturedAt;
-
-                previous = l;
-                dtos.Add(new ChartPointDto
-                {
-                    CapturedAt = time,
-                    ConsumptionValue = consumptionValue
-                });
-            }
-
-
-            return Result<IEnumerable<ChartPointDto>>.Success(dtos);
         }
     }
 }
