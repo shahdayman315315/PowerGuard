@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PowerGuard.Application.Dtos;
+using PowerGuard.Application.Features.Admin.Queries.GetAdminDashboardStats;
 using PowerGuard.Application.Interfaces;
 
 namespace PowerGuard.WebApi.Controllers
@@ -11,18 +13,16 @@ namespace PowerGuard.WebApi.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminController : ControllerBase
     {
-        private readonly IFactoryService _factoryService;
-        private readonly IAdminService _adminService;
-        public AdminController(IFactoryService factoryService, IAdminService adminService)
+        private readonly ISender _sender;
+        public AdminController(ISender sender)
         {
-            _factoryService = factoryService;
-            _adminService = adminService;
+            _sender = sender;
         }
 
         [HttpGet("admin-dashboard")]    
         public async Task<IActionResult> GetAdminDashboard()
         {
-            var result = await _adminService.GetAdminDashboardStats();
+            var result = await _sender.Send(new GetAdminDashboardStatsQuery());
 
             if (!result.IsSuccess)
             {
@@ -36,7 +36,7 @@ namespace PowerGuard.WebApi.Controllers
         [HttpGet("factories")]
         public async Task<IActionResult> GetAllFactories()
         {
-            var result = await _factoryService.GetAllFactories();
+            var result = await _sender.Send(new GetAllFactoriesQuery());
 
             if (!result.IsSuccess)
             {

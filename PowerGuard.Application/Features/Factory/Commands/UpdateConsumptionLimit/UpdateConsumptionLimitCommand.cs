@@ -1,4 +1,7 @@
-﻿using System;
+﻿using MediatR;
+using PowerGuard.Application.Dtos;
+using PowerGuard.Application.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace PowerGuard.Application.Features.Factory.UpdateConsumptionLimit
 {
-    internal class UpdateConsumptionLimitCommand
-    {
-    }
+    public sealed record UpdateConsumptionLimitCommand(int factoryId, decimal NewLimit, string userId)
+        :IRequest<Result<bool>>;
+
 }

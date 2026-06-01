@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Features\Factory\UpdateConsumptionLimit\**" />
+    <EmbeddedResource Remove="Features\Factory\UpdateConsumptionLimit\**" />
+    <None Remove="Features\Factory\UpdateConsumptionLimit\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
     <PackageReference Include="MailKit" Version="4.15.1" />
@@ -18,10 +24,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PowerGuard.Domain\PowerGuard.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Features\Factory\UpdateConsumptionLimit\" />
   </ItemGroup>
 
 </Project>
