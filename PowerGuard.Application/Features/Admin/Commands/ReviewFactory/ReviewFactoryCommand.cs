@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace PowerGuard.Application.Features.Admin.Commands.ReviewFactory
 {
-    public sealed record ReviewFactoryCommand( int FactoryId, bool IsApproved , string AdminRemarks ):
+    public sealed record ReviewFactoryCommand( int FactoryId, bool IsApproved , string? AdminRemarks ):
         IRequest<Result<bool>>;
     
 }

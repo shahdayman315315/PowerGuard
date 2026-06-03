@@ -3,7 +3,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PowerGuard.Application.Dtos;
+using PowerGuard.Application.Features.Admin.Commands.activateFactory;
+using PowerGuard.Application.Features.Admin.Commands.ReviewFactory;
 using PowerGuard.Application.Features.Admin.Queries.GetAdminDashboardStats;
+using PowerGuard.Application.Features.Factory.DeleteFactory;
+using PowerGuard.Application.Features.Factory.Queries.GetActiveFactories;
+using PowerGuard.Application.Features.Factory.Queries.GetAllFactories;
+using PowerGuard.Application.Features.Factory.Queries.GetPendingFactories;
 using PowerGuard.Application.Interfaces;
 
 namespace PowerGuard.WebApi.Controllers
@@ -50,7 +56,7 @@ namespace PowerGuard.WebApi.Controllers
         [HttpGet("pending-factories")]
         public async Task<IActionResult> GetPendingFactories()
         {
-            var result = await _factoryService.GetPendingFactories();
+            var result = await _sender.Send(new GetPendingFactoriesQuery());
 
             if (!result.IsSuccess)
             {
@@ -63,7 +69,7 @@ namespace PowerGuard.WebApi.Controllers
         [HttpGet("active-factories")]
         public async Task<IActionResult> GetActiveFactories()
         {
-            var result = await _factoryService.GetActiveFactories();
+            var result = await _sender.Send(new GetActiveFactoriesQuery());
 
             if (!result.IsSuccess)
             {
@@ -75,9 +81,9 @@ namespace PowerGuard.WebApi.Controllers
 
 
         [HttpPut("review-factory")]
-        public async Task<IActionResult> ReviewFactory(ReviewFactoryDto dto)
+        public async Task<IActionResult> ReviewFactory(ReviewFactoryCommand command)
         {
-            var result = await _adminService.ReviewFactory(dto);
+            var result = await _sender.Send(command); 
 
             if (!result.IsSuccess)
                 return StatusCode(result.StatusCode, result.Message);
@@ -88,9 +94,9 @@ namespace PowerGuard.WebApi.Controllers
 
 
         [HttpPut("activate-factory/{id}")]
-        public async Task<IActionResult> ReactivateFactory(int id)
+        public async Task<IActionResult> ActivateFactory(int id)
         {
-            var result =await _adminService.ReactivateFactoryAsync(id);
+            var result =await _sender.Send(new ActivateFactoryCommand(id));
 
             if(!result.IsSuccess)
             {
@@ -104,7 +110,7 @@ namespace PowerGuard.WebApi.Controllers
         [HttpDelete("delete-factory/{id}")]
         public async Task<IActionResult> DeleteFactory(int id)
         {
-            var result = await _factoryService.DeleteFactory(id);
+            var result = await _sender.Send(new DeleteFactoryCommand(id));
 
             if (!result.IsSuccess)
                 return StatusCode(result.StatusCode, result.Message);

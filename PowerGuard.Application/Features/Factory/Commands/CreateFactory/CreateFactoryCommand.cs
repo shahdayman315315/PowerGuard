@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace PowerGuard.Application.Features.Factory.CreateFactory
 {
     public sealed record  CreateFactoryCommand(string Name,string? Location,string? Description,
-        decimal? CurrentConsumptionLimit,string UserId)
+        decimal? CurrentConsumptionLimit)
         : IRequest<Result<CreateFactoryDto>>;
 
 }

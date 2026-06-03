@@ -18,20 +18,17 @@ namespace PowerGuard.WebApi.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IMediator _mediator;
-        private readonly IMapper _mapper;
-        public AuthController(IMediator mediator,IMapper mapper)
+        private readonly ISender _sender;
+        public AuthController(ISender sender)
         {
-            _mediator = mediator;
-            _mapper = mapper;
+            _sender = sender;
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterDto registerDto)
+        public async Task<IActionResult> Register(RegisterCommand command)
         {
-            var command=_mapper.Map<RegisterCommand>(registerDto);  
 
-            var result=await _mediator.Send(command);
+            var result=await _sender.Send(command);
 
             if (!result.IsSuccess)
             {
@@ -48,10 +45,9 @@ namespace PowerGuard.WebApi.Controllers
 
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginDto dto)
+        public async Task<IActionResult> Login(LoginCommand command)
         {
-            var command=_mapper.Map<LoginCommand>(dto);
-            var result = await _mediator.Send(command);
+            var result = await _sender.Send(command);
 
             if (!result.IsSuccess)
             {
@@ -68,24 +64,24 @@ namespace PowerGuard.WebApi.Controllers
 
 
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken(RefreshTokenDto? dto)
+        public async Task<IActionResult> RefreshToken(RefreshTokenCommand command)
         {
-            if(dto is null)
+            if(command is null)
             {
-                dto=new RefreshTokenDto
-                {
-                    AccessToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", ""),
-                    RefreshToken = Request.Cookies["refreshToken"]
-                };
+                command = new RefreshTokenCommand
+                    (
+                    Request.Headers["Authorization"].ToString().Replace("Bearer ", ""),
+                    Request.Cookies["refreshToken"]
+                    );
+                
             }
             
-            if (string.IsNullOrEmpty(dto.RefreshToken) || string.IsNullOrEmpty(dto.AccessToken))
+            if (string.IsNullOrEmpty(command.RefreshToken) || string.IsNullOrEmpty(command.AccessToken))
             {
                 return BadRequest("Tokens are required");
             }
 
-            var command=_mapper.Map<RefreshTokenCommand>(dto);
-            var result = await _mediator.Send(command);
+            var result = await _sender.Send(command);
 
             if (!result.IsSuccess)
             {
@@ -111,8 +107,8 @@ namespace PowerGuard.WebApi.Controllers
                 return BadRequest("Token is required");
             }
 
-            var command=new RevokeRefreshTokenCommand(refreshToken=refreshToken);
-            var result = await _mediator.Send(command);
+            var command=new RevokeRefreshTokenCommand(refreshToken);
+            var result = await _sender.Send(command);
 
             if (!result.IsSuccess)
             {
@@ -136,7 +132,7 @@ namespace PowerGuard.WebApi.Controllers
             }
 
             var command = new RevokeRefreshTokenCommand(refreshToken = refreshToken);
-            var result = await _mediator.Send(command);
+            var result = await _sender.Send(command);
 
             if (!result.IsSuccess)
             {
@@ -149,10 +145,9 @@ namespace PowerGuard.WebApi.Controllers
         }
 
         [HttpPost("forget-password")]
-        public async Task<IActionResult> ForgetPassword(ForgetPasswordDto dto)
+        public async Task<IActionResult> ForgetPassword(ForgetPasswordCommand command)
         {
-            var command=new ForgetPasswordCommand(dto.Email);
-            var result = await _mediator.Send(command);
+            var result = await _sender.Send(command);
 
             if (!result.IsSuccess)
             {
@@ -163,10 +158,9 @@ namespace PowerGuard.WebApi.Controllers
         }
 
         [HttpPost("verify-otp")]
-        public async Task<IActionResult> VerifyOtp(VerifyOtpDto dto)
+        public async Task<IActionResult> VerifyOtp(VerifyOtpCommand command)
         {
-            var command=_mapper.Map<VerifyOtpCommand>(dto);
-            var result = await _mediator.Send(command);
+            var result = await _sender.Send(command);
 
             if (!result.IsSuccess)
             {
@@ -177,10 +171,9 @@ namespace PowerGuard.WebApi.Controllers
         }
 
         [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+        public async Task<IActionResult> ResetPassword(ResetPasswordCommand command)
         {
-            var command=_mapper.Map<ResetPasswordCommand>(dto);
-            var result = await _mediator.Send(command);
+            var result = await _sender.Send(command);
 
             if (!result.IsSuccess)
             {

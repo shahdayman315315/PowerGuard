@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace PowerGuard.Application.Features.Department.Commands.UpdateConsumptionLimit
 {
-    public sealed record UpdateConsumptionLimitCommand(int departmentId, string userId, decimal NewLimit) : 
+    public sealed record UpdateConsumptionLimitCommand(int departmentId, decimal NewLimit) : 
         IRequest<Result<bool>>;
     
 }

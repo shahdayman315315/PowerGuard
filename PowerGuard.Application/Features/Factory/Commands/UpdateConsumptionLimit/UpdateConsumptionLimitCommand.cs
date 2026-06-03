@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace PowerGuard.Application.Features.Factory.UpdateConsumptionLimit
 {
-    public sealed record UpdateConsumptionLimitCommand(int factoryId, decimal NewLimit, string userId)
+    public sealed record UpdateConsumptionLimitCommand(int factoryId, decimal NewLimit)
         :IRequest<Result<bool>>;
 
 }

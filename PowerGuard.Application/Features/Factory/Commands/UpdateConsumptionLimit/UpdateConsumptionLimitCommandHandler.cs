@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using PowerGuard.Application.Events;
 using PowerGuard.Application.Helpers;
@@ -9,6 +10,7 @@ using PowerGuard.Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,8 +21,10 @@ namespace PowerGuard.Application.Features.Factory.UpdateConsumptionLimit
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMediator _mediator;
         private readonly IEnumerable<IConsumptionEvaluationStrategy> _strategies;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UpdateConsumptionLimitCommandHandler(IUnitOfWork unitOfWork, IMediator mediator, IEnumerable<IConsumptionEvaluationStrategy> strategies)
+        public UpdateConsumptionLimitCommandHandler(IUnitOfWork unitOfWork, IMediator mediator, 
+            IEnumerable<IConsumptionEvaluationStrategy> strategies, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
             _mediator = mediator;
@@ -67,13 +71,14 @@ namespace PowerGuard.Application.Features.Factory.UpdateConsumptionLimit
 
             factory.CurrentConsumptionLimit = request.NewLimit;
 
+            var userId= _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var limitHistory = new LimitHistory
             {
                 FactoryId = request.factoryId,
                 LimitValue = (decimal)factory.CurrentConsumptionLimit,
                 CreatedAt = DateTime.UtcNow,
                 ActiveFrom = DateTime.UtcNow,
-                SetBy = request.userId
+                SetBy = userId!
             };
 
             await _unitOfWork.LimitHistories.AddAsync(limitHistory,cancellationToken);

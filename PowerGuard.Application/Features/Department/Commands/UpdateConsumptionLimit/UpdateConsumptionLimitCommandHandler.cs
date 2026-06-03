@@ -10,6 +10,7 @@ using PowerGuard.Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -80,6 +81,8 @@ namespace PowerGuard.Application.Features.Department.Commands.UpdateConsumptionL
 
             department.CurrentConsumptionLimit = request.NewLimit;
 
+            var userId=_httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
             var limitHistory = new LimitHistory
             {
                 FactoryId = factoryId,
@@ -87,7 +90,7 @@ namespace PowerGuard.Application.Features.Department.Commands.UpdateConsumptionL
                 LimitValue = request.NewLimit,
                 CreatedAt = DateTime.UtcNow,
                 ActiveFrom = DateTime.UtcNow,
-                SetBy = request.userId
+                SetBy = userId!
             };
 
             await _unitOfWork.LimitHistories.AddAsync(limitHistory,cancellationToken);

@@ -18,4 +18,8 @@
     <ProjectReference Include="..\PowerGuard.Infrastructure\PowerGuard.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\ate\" />
+  </ItemGroup>
+
 </Project>

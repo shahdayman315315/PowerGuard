@@ -46,7 +46,7 @@ namespace PowerGuard.Application.Features.Admin.Commands.ReviewFactory
                 factory.AdminRemarks = request.AdminRemarks ?? "No remarks provided.";
             }
 
-            var result = await _unitOfWork.SaveChangesAsync();
+            var result = await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             if (result > 0)
             {
