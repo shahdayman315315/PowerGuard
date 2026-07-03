@@ -81,25 +81,17 @@ namespace PowerGuard.Infrastructure
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddScoped<ITokenService, TokenService>();
-            services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddTransient<IEmailService, EmailService>();
-            services.AddScoped<IFactoryService, FactoryService>();
-            services.AddScoped<IAdminService, AdminService>();
-            services.AddScoped<IDepartmentService, DepartmentService>();
+            
             services.AddScoped<IConsumptionEvaluationStrategy, CriticalEvaluationStrategy>();
             services.AddScoped<IConsumptionEvaluationStrategy, WarningEvaluationSrategy>();
-            services.AddScoped<IConsumptionService, ConsumptionService>();
-            services.AddScoped<INotificationService, NotificationService>();
-            services.AddScoped<IDepartmentDashboardService, DepartmentDashboardService>();
-            services.AddScoped<IFactoryDashboardService, FactoryDashboardService>();
+           
             // في ملف Program.cs
             services.AddScoped<IRealTimeNotificationService, RealTimeNotificationService>();
 
             // في ملف Program.cs
-            services.AddMediatR(cfg => {
-                cfg.RegisterServicesFromAssembly(typeof(IFactoryDashboardService).Assembly);
-            });
+            
             services.AddMemoryCache();
             services.AddSignalR();
 

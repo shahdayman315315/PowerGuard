@@ -19,7 +19,7 @@ namespace PowerGuard.Application.Profiles
             CreateMap<Factory, FactoryDto>()
                 .ForMember(dest => dest.DepartmentsCount,
                            opt => opt.MapFrom(src => src.Departments != null ? src.Departments.Count : 0));
-            CreateMap<UpdateFactoryDto,Factory >()
+            CreateMap<UpdateFactoryCommand,Factory >()
                             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<Factory, FactoryDetailsDto>()

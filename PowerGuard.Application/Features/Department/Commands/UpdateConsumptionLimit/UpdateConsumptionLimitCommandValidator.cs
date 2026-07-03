@@ -21,8 +21,7 @@ namespace PowerGuard.Application.Features.Department.Commands.UpdateConsumptionL
                 .NotEmpty().WithMessage("Department ID is required.")
                 .GreaterThan(0).WithMessage("Department ID must be greater than zero.");
 
-             RuleFor(x => x.userId)
-                .NotEmpty().WithMessage("User ID is required.");
+             
         }
     }
 }

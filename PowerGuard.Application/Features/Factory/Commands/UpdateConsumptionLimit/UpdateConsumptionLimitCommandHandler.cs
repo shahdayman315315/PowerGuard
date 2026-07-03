@@ -29,6 +29,7 @@ namespace PowerGuard.Application.Features.Factory.UpdateConsumptionLimit
             _unitOfWork = unitOfWork;
             _mediator = mediator;
             _strategies = strategies;
+            _httpContextAccessor = httpContextAccessor;
         }
         public async Task<Result<bool>> Handle(UpdateConsumptionLimitCommand request, CancellationToken cancellationToken)
         {
