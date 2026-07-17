@@ -13,5 +13,6 @@ RUN dotnet publish PowerGuard.WebApi/PowerGuard.WebApi.csproj -c Release -o /app
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 
 WORKDIR /app
+EXPOSE 8080
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "PowerGuard.WebApi.dll"]

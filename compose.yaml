@@ -1,0 +1,34 @@
+services:
+ powerguard-api:
+   build:
+     context: .
+     dockerfile: Dockerfile
+
+   container_name: powerguard-api
+
+   ports:
+     - "8080:8080"
+
+   depends_on:
+     - sqlserver
+
+   environment:
+       ASPNETCORE_URLS: http://+:8080
+       ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=PowerGuardDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=True"
+
+ sqlserver:
+   image: mcr.microsoft.com/mssql/server:2022-latest
+   container_name: powerguard-sql
+
+   environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD}
+
+   ports:
+    - "1433:1433"
+
+   volumes:
+    - sqlserver-data:/var/opt/mssql
+
+volumes:
+    sqlserver-data:

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using PowerGuard.Application;
 using PowerGuard.Domain.Models;
 using PowerGuard.Infrastructure;
@@ -29,6 +30,9 @@ namespace PowerGuard.WebApi
 
             using (var scope = app.Services.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                 await context.Database.MigrateAsync();
                 var UserManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
                 var RoleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
