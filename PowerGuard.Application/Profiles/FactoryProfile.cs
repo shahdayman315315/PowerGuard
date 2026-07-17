@@ -30,6 +30,7 @@ namespace PowerGuard.Application.Profiles
 
             CreateMap<Factory, CreateFactoryCommand>().ReverseMap();
             CreateMap<Factory, UpdateFactoryCommand>().ReverseMap();
+            
         }
     }
 }
