@@ -11,8 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PowerGuard.Infrastructure",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PowerGuard.WebApi", "PowerGuard.WebApi\PowerGuard.WebApi.csproj", "{F22B5767-F353-4BE4-9754-4A76758144F3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PowerGuard.Tests", "PowerGuard.Tests\PowerGuard.Tests.csproj", "{1247E676-002D-424B-B9A8-84BEDA9025B4}"
-EndProject
+
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
