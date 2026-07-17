@@ -1,6 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PowerGuard.Application.Features.Notifications.Commands.DeleteAll;
+using PowerGuard.Application.Features.Notifications.Commands.MarkAllAsRead;
+using PowerGuard.Application.Features.Notifications.Commands.MarkAsRead;
+using PowerGuard.Application.Features.Notifications.Queries.GetUnReadCount;
+using PowerGuard.Application.Features.Notifications.Queries.GetUserNotifications;
 using PowerGuard.Application.Interfaces;
 using System.Security.Claims;
 
@@ -11,10 +17,10 @@ namespace PowerGuard.WebApi.Controllers
     [Authorize]
     public class NotificationsController : ControllerBase
     {
-        private readonly INotificationService _notificationService;
-        public NotificationsController(INotificationService notificationService)
+        private readonly ISender _sender;
+        public NotificationsController(ISender sender)
         {
-            _notificationService = notificationService;
+            _sender = sender;
         }
 
 
@@ -23,7 +29,7 @@ namespace PowerGuard.WebApi.Controllers
         {
             var userId=User.Claims.FirstOrDefault(c=>c.Type==ClaimTypes.NameIdentifier)?.Value;
             
-            var result=await _notificationService.GetUserNotificationAsync(userId,pageNumber,pageSize);
+            var result=await _sender.Send(new GetUserNotificationsQuery(userId!,pageNumber,pageSize));
 
             return Ok(result.Data);
         }
@@ -34,7 +40,7 @@ namespace PowerGuard.WebApi.Controllers
         {
             var userId=User.Claims.FirstOrDefault(c=>c.Type==ClaimTypes.NameIdentifier)?.Value; 
 
-            var result=await _notificationService.GetUnReadCountAsync(userId);
+            var result=await _sender.Send(new GetUnReadCountQuery(userId!));
 
             return Ok(result.Data);
         }
@@ -45,7 +51,7 @@ namespace PowerGuard.WebApi.Controllers
         {
             var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-            var result=await _notificationService.MarkAsReadAsync(id,userId);
+            var result=await _sender.Send(new MarkAsReadCommand(id,userId!));
 
             if (!result.IsSuccess)
             {
@@ -56,12 +62,27 @@ namespace PowerGuard.WebApi.Controllers
         }
 
 
+        [HttpPatch("mark-all-as-read")]
+        public async Task<IActionResult> MarkAllAsRead()
+        {
+            var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            var result = await _sender.Send(new MarkAllAsReadCommand(userId!));
+
+            if (!result.IsSuccess)
+            {
+                return StatusCode(result.StatusCode, result.Message);
+            }
+
+            return Ok(result.Data);
+        }
+
         [HttpDelete("delete-all")]
         public async Task<IActionResult> DeleteAll()
         {
             var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-            var result = await _notificationService.DeleteAll(userId);
+            var result = await _sender.Send(new DeleteAllCommand(userId!));
 
             if (!result.IsSuccess)
             {

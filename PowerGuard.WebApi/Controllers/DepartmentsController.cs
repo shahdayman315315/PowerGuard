@@ -1,7 +1,16 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PowerGuard.Application.Dtos;
+using PowerGuard.Application.Features.Department.Commands.CreateDepartment;
+using PowerGuard.Application.Features.Department.Commands.DeleteDepartment;
+using PowerGuard.Application.Features.Department.Commands.RegisterDepartmentManager;
+using PowerGuard.Application.Features.Department.Commands.UpdateConsumptionLimit;
+using PowerGuard.Application.Features.Department.Commands.UpdateDepartment;
+using PowerGuard.Application.Features.Department.Queries.GetAllDepartments;
+using PowerGuard.Application.Features.Department.Queries.GetAvailableDepartmentManagers;
+using PowerGuard.Application.Features.Department.Queries.GetDepartment;
 using PowerGuard.Application.Interfaces;
 using PowerGuard.Application.Services;
 using System.Security.Claims;
@@ -14,17 +23,17 @@ namespace PowerGuard.WebApi.Controllers
     [Authorize(Roles ="Admin,FactoryManager")]
     public class DepartmentsController : ControllerBase
     {
-        private readonly IDepartmentService _departmentsService;
-        public DepartmentsController(IDepartmentService departmentsService)
+        private readonly ISender _sender;
+        public DepartmentsController(ISender sender)
         {
-            _departmentsService = departmentsService;
+            _sender = sender;
         }
 
 
         [HttpPost("Create")]
-        public async Task<IActionResult> Create(CreateDepartmentDto dto)
+        public async Task<IActionResult> Create(CreateDepartmentCommand command)
         {
-            var result = await _departmentsService.CreateDepartmentAsync(dto);
+            var result = await _sender.Send(command);
 
             if (!result.IsSuccess)
             {
@@ -36,9 +45,9 @@ namespace PowerGuard.WebApi.Controllers
 
 
         [HttpPost("Add-DepartmentManager")]
-        public async Task<IActionResult> AddDepartmentManager(RegisterManagerDto dto)
+        public async Task<IActionResult> AddDepartmentManager(RegisterDepartmentManagerCommand command)
         {
-            var result= await _departmentsService.RegisterDepartmentManager(dto);
+            var result= await _sender.Send(command);
 
             if (!result.IsSuccess)
             {
@@ -52,7 +61,7 @@ namespace PowerGuard.WebApi.Controllers
         [HttpGet("AvailableDepartmentManagers")]
         public async Task<IActionResult> GetAvailableManagers()
         {
-            var result = await _departmentsService.GetAvailableManagersAsync();
+            var result = await _sender.Send(new GetAvailableDepartmentManagersQuery());
 
             if (!result.IsSuccess)
             {
@@ -66,7 +75,7 @@ namespace PowerGuard.WebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var result=await _departmentsService.GetAllAsync();
+            var result=await _sender.Send(new GetAllDepartmentsQuery());
 
             if (!result.IsSuccess)
             {
@@ -80,7 +89,7 @@ namespace PowerGuard.WebApi.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var result=await _departmentsService.GetByIdAsync(id);
+            var result=await _sender.Send(new GetDepartmentQuery(id));
 
             if (!result.IsSuccess)
             {
@@ -91,10 +100,10 @@ namespace PowerGuard.WebApi.Controllers
         }
 
 
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> Update(int id, UpdateDepartmentDto dto)
+        [HttpPut("update")]
+        public async Task<IActionResult> Update( UpdateDepartmentCommand command)
         {
-            var result= await _departmentsService.UpdateAsync(dto, id);
+            var result= await _sender.Send(command);
 
             if (!result.IsSuccess)
             {
@@ -105,12 +114,11 @@ namespace PowerGuard.WebApi.Controllers
         }
 
 
-        [HttpPatch("Update-ConsumptionLimit/{departmentid}")]
-        public async Task<IActionResult> UpdateConsumptionLimit(int departmentid, UpdateConsumptionLimitDto dto)
+        [HttpPatch("Update-ConsumptionLimit")]
+        public async Task<IActionResult> UpdateConsumptionLimit(UpdateConsumptionLimitCommand command)
         {
-            var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-            var result = await _departmentsService.UpdateConsumptionLimit(dto, departmentid,  userId);
+            var result = await _sender.Send(command);
 
             if (!result.IsSuccess)
             {
@@ -123,7 +131,7 @@ namespace PowerGuard.WebApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            var result= await _departmentsService.DeleteAsync(id);
+            var result= await _sender.Send(new DeleteDepartmentCommand(id));
 
             if (!result.IsSuccess)
             {

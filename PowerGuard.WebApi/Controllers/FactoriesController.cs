@@ -1,7 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PowerGuard.Application.Dtos;
+using PowerGuard.Application.Features.Department.Commands.UpdateConsumptionLimit;
+using PowerGuard.Application.Features.Factory.CreateFactory;
+using PowerGuard.Application.Features.Factory.Queries.GetFactory;
+using PowerGuard.Application.Features.Factory.UpdateFactory;
 using PowerGuard.Application.Interfaces;
 using System.Security.Claims;
 
@@ -12,18 +17,17 @@ namespace PowerGuard.WebApi.Controllers
     [Authorize(Roles = "Admin,FactoryManager")]
     public class FactoriesController : ControllerBase
     {
-        private readonly IFactoryService _factoryService;
-        public FactoriesController(IFactoryService factoryService)
+        private readonly ISender _sender;
+        public FactoriesController(ISender sender)
         {
-            _factoryService = factoryService;
+            _sender = sender;
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateFactoryDto dto)
+        public async Task<IActionResult> Create(CreateFactoryCommand command)
         {
-            var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-            var result = await _factoryService.CreateFactory(dto, userId);
+            var result = await _sender.Send(command);
 
             if (!result.IsSuccess)
             {
@@ -36,7 +40,7 @@ namespace PowerGuard.WebApi.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var result = await _factoryService.GetFactoryById(id);
+            var result = await _sender.Send(new GetFactoryQuery(id));
 
             if (!result.IsSuccess)
             {
@@ -48,10 +52,10 @@ namespace PowerGuard.WebApi.Controllers
 
 
 
-        [HttpPut("update/{id}")]
-        public async Task<IActionResult> Update(int id, UpdateFactoryDto dto)
+        [HttpPut("update")]
+        public async Task<IActionResult> Update(UpdateFactoryCommand command)
         {
-            var result = await _factoryService.UpdateFactory(id, dto);
+            var result = await _sender.Send(command);
 
             if (!result.IsSuccess)
             {
@@ -62,12 +66,11 @@ namespace PowerGuard.WebApi.Controllers
         }
 
 
-        [HttpPatch("Update-ConsumptionLimit/{factoryid}")]
-        public async Task<IActionResult> UpdateConsumptionLimit(int factoryid, UpdateConsumptionLimitDto dto)
+        [HttpPatch("Update-ConsumptionLimit")]
+        public async Task<IActionResult> UpdateConsumptionLimit(UpdateConsumptionLimitCommand command)
         {
-            var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-            var result =await _factoryService.UpdateConsumptionLimit(factoryid, dto,userId);
+            var result =await _sender.Send(command);
 
             if(!result.IsSuccess)
             {

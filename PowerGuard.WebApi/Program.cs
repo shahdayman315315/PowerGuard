@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using PowerGuard.Application;
 using PowerGuard.Domain.Models;
+using PowerGuard.Infrastructure;
 using PowerGuard.Infrastructure.Data;
-using PowerGuard.Infrastructure.Extensions;
 using PowerGuard.Infrastructure.RealTimeService.Hubs;
 using System.Threading.Tasks;
 
@@ -19,12 +21,18 @@ namespace PowerGuard.WebApi
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            // Add Application and Infrastructure services
+            builder.Services.AddApplicationServices();
             builder.Services.AddInfrastructureServices(builder.Configuration);
 
             var app = builder.Build();
 
             using (var scope = app.Services.CreateScope())
             {
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                 await context.Database.MigrateAsync();
                 var UserManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
                 var RoleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 

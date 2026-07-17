@@ -13,7 +13,6 @@ namespace PowerGuard.Application.Profiles
     {
         public DepartmentProfile()
         {
-            CreateMap<CreateDepartmentDto, Department>();
             CreateMap<Department, DepartmentDto>().ForMember(dest => dest.ManagerName, opt => opt.MapFrom(src => src.Manager == null ? "No anager Assigned": src.Manager.UserName));
             CreateMap<UpdateDepartmentDto, Department>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));

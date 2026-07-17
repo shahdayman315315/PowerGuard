@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using PowerGuard.Application.Dtos;
+using PowerGuard.Application.Features.Factory.CreateFactory;
+using PowerGuard.Application.Features.Factory.UpdateFactory;
 using PowerGuard.Domain.Models;
 using System;
 using System.Collections.Generic;
@@ -17,7 +19,7 @@ namespace PowerGuard.Application.Profiles
             CreateMap<Factory, FactoryDto>()
                 .ForMember(dest => dest.DepartmentsCount,
                            opt => opt.MapFrom(src => src.Departments != null ? src.Departments.Count : 0));
-            CreateMap<UpdateFactoryDto,Factory >()
+            CreateMap<UpdateFactoryCommand,Factory >()
                             .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<Factory, FactoryDetailsDto>()
@@ -26,6 +28,8 @@ namespace PowerGuard.Application.Profiles
                 .ForMember(dest => dest.ManagerEmail,
                              opt => opt.MapFrom(src => src.Manager.Email));
 
+            CreateMap<Factory, CreateFactoryCommand>().ReverseMap();
+            CreateMap<Factory, UpdateFactoryCommand>().ReverseMap();
             
         }
     }

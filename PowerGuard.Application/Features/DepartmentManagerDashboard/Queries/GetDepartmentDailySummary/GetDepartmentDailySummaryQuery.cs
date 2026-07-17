@@ -1,0 +1,15 @@
+﻿using MediatR;
+using PowerGuard.Application.Dtos;
+using PowerGuard.Application.Helpers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace PowerGuard.Application.Features.DepartmentManagerDashboard.Queries.GetDepartmentDailySummary
+{
+    public sealed record GetDepartmentDailySummaryQuery(int departmentId) : 
+        IRequest<Result<DepartmentDailyConsumptionSummaryDto>>;
+    
+}

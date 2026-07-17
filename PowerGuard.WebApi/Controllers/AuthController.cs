@@ -1,6 +1,15 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PowerGuard.Application.Dtos;
+using PowerGuard.Application.Features.Auth.Login;
+using PowerGuard.Application.Features.Auth.Password.ForgetPassword;
+using PowerGuard.Application.Features.Auth.Password.ResetPassword;
+using PowerGuard.Application.Features.Auth.Password.VerifyOtp;
+using PowerGuard.Application.Features.Auth.RefreshToken;
+using PowerGuard.Application.Features.Auth.Register;
+using PowerGuard.Application.Features.Auth.RevokeRefreshToken;
 using PowerGuard.Application.Interfaces;
 
 namespace PowerGuard.WebApi.Controllers
@@ -9,80 +18,82 @@ namespace PowerGuard.WebApi.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService _authService;
-        public AuthController(IAuthService authService)
+        private readonly ISender _sender;
+        public AuthController(ISender sender)
         {
-            _authService = authService;
+            _sender = sender;
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterDto registerDto)
+        public async Task<IActionResult> Register(RegisterCommand command)
         {
-            var result=await _authService.RegisterAsync(registerDto);
+
+            var result=await _sender.Send(command);
 
             if (!result.IsSuccess)
             {
                 return BadRequest(result.Message);
             }
 
-            if (!string.IsNullOrEmpty(result.RefreshToken))
+            if (!string.IsNullOrEmpty(result.Data!.RefreshToken))
             {
-                SetRefreshTokenInCookie(result.RefreshToken, result.RefreshTokenExpiration);
+                SetRefreshTokenInCookie(result.Data!.RefreshToken, result.Data!.RefreshTokenExpiration);
             }
 
-            return Ok(result);
+            return Ok(result.Data);
         }
 
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginDto dto)
+        public async Task<IActionResult> Login(LoginCommand command)
         {
-            var result = await _authService.LoginAsync(dto);
+            var result = await _sender.Send(command);
 
             if (!result.IsSuccess)
             {
                 return Unauthorized(result.Message);
             }
 
-            if (!string.IsNullOrEmpty(result.RefreshToken))
+            if (!string.IsNullOrEmpty(result.Data!.RefreshToken))
             {
-                SetRefreshTokenInCookie(result.RefreshToken, result.RefreshTokenExpiration);
+                SetRefreshTokenInCookie(result.Data!.RefreshToken, result.Data!.RefreshTokenExpiration);
             }
 
-            return Ok(result);
+            return Ok(result.Data);
         }
 
 
         [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken(RefreshTokenDto? dto)
+        public async Task<IActionResult> RefreshToken(RefreshTokenCommand command)
         {
-            if(dto is null)
+            if(command is null)
             {
-                dto=new RefreshTokenDto
-                {
-                    AccessToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", ""),
-                    RefreshToken = Request.Cookies["refreshToken"]
-                };
+                command = new RefreshTokenCommand
+                    (
+                    Request.Headers["Authorization"].ToString().Replace("Bearer ", ""),
+                    Request.Cookies["refreshToken"]
+                    );
+                
             }
             
-            if (string.IsNullOrEmpty(dto.RefreshToken) || string.IsNullOrEmpty(dto.AccessToken))
+            if (string.IsNullOrEmpty(command.RefreshToken) || string.IsNullOrEmpty(command.AccessToken))
             {
                 return BadRequest("Tokens are required");
             }
 
-            var result = await _authService.RefreshTokenAsync(dto);
+            var result = await _sender.Send(command);
 
             if (!result.IsSuccess)
             {
                 return Unauthorized(result.Message);
             }
 
-            if (!string.IsNullOrEmpty(result.RefreshToken))
+            if (!string.IsNullOrEmpty(result.Data!.RefreshToken))
             {
-                SetRefreshTokenInCookie(result.RefreshToken, result.RefreshTokenExpiration);
+                SetRefreshTokenInCookie(result.Data!.RefreshToken, result.Data!.RefreshTokenExpiration);
             }
 
-            return Ok(result);
+            return Ok(result.Data);
         }
 
 
@@ -96,9 +107,10 @@ namespace PowerGuard.WebApi.Controllers
                 return BadRequest("Token is required");
             }
 
-            var result = await _authService.RevokeRefreshTokenAsync(token);
+            var command=new RevokeRefreshTokenCommand(refreshToken);
+            var result = await _sender.Send(command);
 
-            if (!result)
+            if (!result.IsSuccess)
             {
                 return BadRequest("Token revocation failed");
             }
@@ -119,9 +131,10 @@ namespace PowerGuard.WebApi.Controllers
                 return BadRequest("Token is required");
             }
 
-            var result = await _authService.RevokeRefreshTokenAsync(token);
+            var command = new RevokeRefreshTokenCommand(refreshToken = refreshToken);
+            var result = await _sender.Send(command);
 
-            if (!result)
+            if (!result.IsSuccess)
             {
                 return BadRequest("Logout failed");
             }
@@ -132,9 +145,9 @@ namespace PowerGuard.WebApi.Controllers
         }
 
         [HttpPost("forget-password")]
-        public async Task<IActionResult> ForgetPassword(ForgetPasswordDto dto)
+        public async Task<IActionResult> ForgetPassword(ForgetPasswordCommand command)
         {
-            var result = await _authService.RequestPasswordResetAsync(dto);
+            var result = await _sender.Send(command);
 
             if (!result.IsSuccess)
             {
@@ -145,9 +158,9 @@ namespace PowerGuard.WebApi.Controllers
         }
 
         [HttpPost("verify-otp")]
-        public async Task<IActionResult> VerifyOtp(VerifyOtpDto dto)
+        public async Task<IActionResult> VerifyOtp(VerifyOtpCommand command)
         {
-            var result = await _authService.VerifyOtpAsync(dto);
+            var result = await _sender.Send(command);
 
             if (!result.IsSuccess)
             {
@@ -158,9 +171,9 @@ namespace PowerGuard.WebApi.Controllers
         }
 
         [HttpPost("reset-password")]
-        public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+        public async Task<IActionResult> ResetPassword(ResetPasswordCommand command)
         {
-            var result = await _authService.ResetPasswordAsync(dto);
+            var result = await _sender.Send(command);
 
             if (!result.IsSuccess)
             {

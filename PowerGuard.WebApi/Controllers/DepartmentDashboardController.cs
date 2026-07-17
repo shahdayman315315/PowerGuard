@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PowerGuard.Application.Features.DepartmentManagerDashboard.Queries.GetDepartmentDailySummary;
+using PowerGuard.Application.Features.DepartmentManagerDashboard.Queries.GetDepartmentHourlyChart;
 using PowerGuard.Application.Interfaces;
 
 namespace PowerGuard.WebApi.Controllers
@@ -10,17 +13,17 @@ namespace PowerGuard.WebApi.Controllers
     [Authorize(Roles ="DepartmentManager")]
     public class DepartmentDashboardController : ControllerBase
     {
-        private readonly IDepartmentDashboardService _departmentDashboardService;
+        private readonly ISender _sender;
 
-        public DepartmentDashboardController(IDepartmentDashboardService departmentDashboardService)
+        public DepartmentDashboardController(ISender sender)
         {
-            _departmentDashboardService = departmentDashboardService;
+            _sender = sender;
         }
 
         [HttpGet("daily-summary/{departmentId}")]
         public async Task<IActionResult> GetDailySummary(int departmentId)
         {
-            var result = await _departmentDashboardService.GetDepartmentDailySummaryAsync(departmentId);
+            var result = await _sender.Send(new GetDepartmentDailySummaryQuery(departmentId));
 
             if (!result.IsSuccess)
                 return StatusCode(result.StatusCode, result.Message);
@@ -31,7 +34,7 @@ namespace PowerGuard.WebApi.Controllers
         [HttpGet("hourly-chart/{departmentId}")]
         public async Task<IActionResult> GetHourlyChart(int departmentId)
         {
-            var result = await _departmentDashboardService.GetDepartmentHourlyChartAsync(departmentId);
+            var result = await _sender.Send(new GetDepartmentHourlyChartQuery(departmentId));
 
             if (!result.IsSuccess)
                 return StatusCode(result.StatusCode, result.Message);
