@@ -23,7 +23,7 @@ jobs:
       - name: Build Docker Image
 
         run: |
-          docker build -t shahdayman315/powerguard-api:latest 
+          docker build -t shahdayman315/powerguard-api:latest \
           -t shahdayman315/powerguard-api:${{ github.run_number }} .
       
       - name: Login to Docker Hub
@@ -34,4 +34,5 @@ jobs:
 
       - name: Push Docker Image
         run: |
-         docker push shahdayman315/powerguard-api:latest docker push shahdayman315/powerguard-api:${{ github.run_number }}
+         docker push shahdayman315/powerguard-api:latest 
+         docker push shahdayman315/powerguard-api:${{ github.run_number }}
