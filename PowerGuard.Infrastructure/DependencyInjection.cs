@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using PowerGuard.Application.Helpers;
@@ -17,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using PowerGuard.Infrastructure.Services;
 
 namespace PowerGuard.Infrastructure
 {
@@ -87,14 +89,17 @@ namespace PowerGuard.Infrastructure
             services.AddScoped<IConsumptionEvaluationStrategy, CriticalEvaluationStrategy>();
             services.AddScoped<IConsumptionEvaluationStrategy, WarningEvaluationSrategy>();
            
-            // في ملف Program.cs
             services.AddScoped<IRealTimeNotificationService, RealTimeNotificationService>();
 
-            // في ملف Program.cs
             
-            services.AddMemoryCache();
+            services.AddStackExchangeRedisCache(options =>
+             {
+                 options.Configuration = configuration.GetConnectionString("Redis");
+                 options.InstanceName = "PowerGuardCache_";
+             });
             services.AddSignalR();
 
+            services.AddScoped<ICacheService, RedisCacheService>();
             return services;
         }
     }

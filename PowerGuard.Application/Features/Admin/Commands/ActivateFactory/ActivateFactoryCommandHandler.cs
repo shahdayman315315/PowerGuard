@@ -17,11 +17,13 @@ namespace PowerGuard.Application.Features.Admin.Commands.ActivateFactory
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEmailService _emailService;
+        private readonly ICacheService _cache;
 
-        public ActivateFactoryCommandHandler(IUnitOfWork unitOfWork, IEmailService emailService)
+        public ActivateFactoryCommandHandler(IUnitOfWork unitOfWork, IEmailService emailService, ICacheService cache)
         {
             _emailService = emailService;   
             _unitOfWork = unitOfWork;
+            _cache = cache;
         }
         public async Task<Result<bool>> Handle(ActivateFactoryCommand request, CancellationToken cancellationToken)
         {
@@ -44,6 +46,7 @@ namespace PowerGuard.Application.Features.Admin.Commands.ActivateFactory
             if (result > 0)
             {
                 await _emailService.SendEmailAsync(factory.Manager.Email!, "Factory Reactivation", "Your factory has been reactivated");
+                await _cache.RemoveAsync("ActiveFactoriesList");
                 return Result<bool>.Success(true, "Factory has been activated");
             }
 

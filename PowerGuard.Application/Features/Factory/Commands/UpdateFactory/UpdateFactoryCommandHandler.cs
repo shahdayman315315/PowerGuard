@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using PowerGuard.Application.Dtos;
 using PowerGuard.Application.Helpers;
 using PowerGuard.Domain.Interfaces;
@@ -17,13 +16,13 @@ namespace PowerGuard.Application.Features.Factory.UpdateFactory
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IMemoryCache _memoryCache;
+        private readonly ICacheService _cache;
 
-        public UpdateFactoryCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IMemoryCache memoryCache)
+        public UpdateFactoryCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICacheService cache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _memoryCache = memoryCache;
+            _cache = cache;
         }
         public async Task<Result<FactoryDto>> Handle(UpdateFactoryCommand request, CancellationToken cancellationToken)
         {
@@ -40,8 +39,8 @@ namespace PowerGuard.Application.Features.Factory.UpdateFactory
 
             if (result > 0)
             {
-                _memoryCache.Remove("ActiveFactoriesList");
-                _memoryCache.Remove("FactoriesList");
+                await _cache.RemoveAsync("ActiveFactoriesList");
+                await _cache.RemoveAsync("FactoriesList");
 
                 var factoryDto = _mapper.Map<FactoryDto>(factory);
                 return Result<FactoryDto>.Success(factoryDto);

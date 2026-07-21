@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using PowerGuard.Application.Dtos;
 using PowerGuard.Application.Helpers;
 using PowerGuard.Domain.Enums;
@@ -18,29 +17,29 @@ namespace PowerGuard.Application.Features.Factory.Queries.GetActiveFactories
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IMemoryCache _memoryCache;
+        private readonly ICacheService _cache;
 
-        public GetActiveFactoriesQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, IMemoryCache memoryCache)
+        public GetActiveFactoriesQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICacheService cache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _memoryCache = memoryCache;
+            _cache = cache;
         }
+        
         public async Task<Result<List<FactoryDto>>> Handle(GetActiveFactoriesQuery request, CancellationToken cancellationToken)
         {
             string cacheKey = "ActiveFactoriesList";
 
-            if (!_memoryCache.TryGetValue(cacheKey, out List<FactoryDto> activeFactoryDtos))
+             var activeFactoryDtos = await _cache.GetAsync<List<FactoryDto>>(cacheKey);
+
+            if (activeFactoryDtos == null)
             {
                 var activeFactories = await _unitOfWork.Factories.Query.Include(f => f.Departments).Where(f => f.Status == FactoryStatus.Approved).ToListAsync(cancellationToken);
 
                 activeFactoryDtos = _mapper.Map<List<FactoryDto>>(activeFactories);
 
-                var cacheOptions = new MemoryCacheEntryOptions()
-               .SetSlidingExpiration(TimeSpan.FromMinutes(20)) 
-               .SetAbsoluteExpiration(TimeSpan.FromMinutes(30)); 
+                await _cache.SetAsync(cacheKey, activeFactoryDtos, TimeSpan.FromMinutes(60), TimeSpan.FromMinutes(30)); 
 
-                _memoryCache.Set(cacheKey, activeFactoryDtos, cacheOptions);
             }
 
             return Result<List<FactoryDto>>.Success(activeFactoryDtos);

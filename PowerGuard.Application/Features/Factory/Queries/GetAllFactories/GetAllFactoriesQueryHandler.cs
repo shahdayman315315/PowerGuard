@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using PowerGuard.Application.Dtos;
 using PowerGuard.Application.Helpers;
 using PowerGuard.Domain.Interfaces;
@@ -17,33 +16,33 @@ namespace PowerGuard.Application.Features.Factory.Queries.GetAllFactories
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IMemoryCache _memoryCache;
+        private readonly ICacheService _cache;
 
-        public GetAllFactoriesQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, IMemoryCache memoryCache)
+        public GetAllFactoriesQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICacheService cache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _memoryCache = memoryCache;
+            _cache = cache;
         }
+        
         public async Task<Result<List<FactoryDto>>> Handle(GetAllFactoriesQuery request, CancellationToken cancellationToken)
         {
             string cacheKey = "FactoriesList";
 
-            if (!_memoryCache.TryGetValue(cacheKey, out List<FactoryDto> factoryDtos))
+            var factoryDtos = await _cache.GetAsync<List<FactoryDto>>(cacheKey);
+
+            if (factoryDtos == null)
             {
                 var factories = await _unitOfWork.Factories.Query.Include(f => f.Departments).ToListAsync(cancellationToken);
 
                 factoryDtos = _mapper.Map<List<FactoryDto>>(factories);
 
-                var cacheOptions = new MemoryCacheEntryOptions()
-              .SetSlidingExpiration(TimeSpan.FromMinutes(20)) 
-              .SetAbsoluteExpiration(TimeSpan.FromMinutes(30)); 
 
-                _memoryCache.Set(cacheKey, factoryDtos, cacheOptions);
-
+                await _cache.SetAsync(cacheKey, factoryDtos, TimeSpan.FromMinutes(60), TimeSpan.FromMinutes(30));
             }
 
             return Result<List<FactoryDto>>.Success(factoryDtos);
+
         }
     }
 }

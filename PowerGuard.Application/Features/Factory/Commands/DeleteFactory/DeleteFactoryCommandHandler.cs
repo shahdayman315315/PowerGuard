@@ -1,6 +1,5 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using PowerGuard.Application.Helpers;
 using PowerGuard.Domain.Enums;
 using PowerGuard.Domain.Interfaces;
@@ -15,12 +14,12 @@ namespace PowerGuard.Application.Features.Factory.DeleteFactory
     public class DeleteFactoryCommandHandler : IRequestHandler<DeleteFactoryCommand, Result<bool>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IMemoryCache _memoryCache;
+        private readonly ICacheService _cache;
 
-        public DeleteFactoryCommandHandler(IUnitOfWork unitOfWork, IMemoryCache memoryCache)
+        public DeleteFactoryCommandHandler(IUnitOfWork unitOfWork, ICacheService cache)
         {
             _unitOfWork = unitOfWork;
-            _memoryCache = memoryCache;
+            _cache = cache;
         }
         public async Task<Result<bool>> Handle(DeleteFactoryCommand request, CancellationToken cancellationToken)
         {
@@ -55,7 +54,7 @@ namespace PowerGuard.Application.Features.Factory.DeleteFactory
 
             if (result > 0)
             {
-                _memoryCache.Remove("ActiveFactoriesList");
+                await _cache.RemoveAsync("ActiveFactoriesList");
                 return Result<bool>.Success(true);
             }
 

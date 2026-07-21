@@ -2,7 +2,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Caching.Memory;
 using PowerGuard.Application.Dtos;
 using PowerGuard.Application.Helpers;
 using PowerGuard.Application.Interfaces;
@@ -24,19 +23,19 @@ namespace PowerGuard.Application.Features.Factory.CreateFactory
         private readonly IMapper _mapper;
         private readonly IMediator _mediator;
         private readonly IEnumerable<IConsumptionEvaluationStrategy> _strategies;
-        private readonly IMemoryCache _memoryCache;
+        private readonly ICacheService _cache;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public CreateFactoryCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, UserManager<ApplicationUser> userManager
-            , IMediator mediator, IEnumerable<IConsumptionEvaluationStrategy> strategies, IMemoryCache memoryCache, IHttpContextAccessor httpContextAccessor)
+            , IMediator mediator, IEnumerable<IConsumptionEvaluationStrategy> strategies, ICacheService cache, IHttpContextAccessor httpContextAccessor)
         {
             _mapper = mapper;
             _unitOfWork = unitOfWork;
             _userManager = userManager;
             _mediator = mediator;
             _strategies = strategies;
-            _memoryCache = memoryCache;
             _httpContextAccessor = httpContextAccessor;
+            _cache = cache;
         }
         public async Task<Result<CreateFactoryDto>> Handle(CreateFactoryCommand request, CancellationToken cancellationToken)
         {
@@ -60,8 +59,8 @@ namespace PowerGuard.Application.Features.Factory.CreateFactory
                     return Result<CreateFactoryDto>.Failure("Error happened while setting the manager");
                 }
 
-                _memoryCache.Remove("ActiveFactoriesList");
-                _memoryCache.Remove("FactoriesList");
+                await _cache.RemoveAsync("ActiveFactoriesList");
+                await _cache.RemoveAsync("FactoriesList");
 
                 var dto = _mapper.Map<CreateFactoryDto>(factory);
 

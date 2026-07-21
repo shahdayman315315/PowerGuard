@@ -17,10 +17,13 @@ namespace PowerGuard.Application.Features.Admin.Commands.ReviewFactory
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEmailService _emailService;
 
-        public ReviewFactoryCommandHandler(IEmailService emailService, IUnitOfWork unitOfWork)
+        private readonly ICacheService _cache;
+
+        public ReviewFactoryCommandHandler(IEmailService emailService, IUnitOfWork unitOfWork, ICacheService cache)
         {
             _emailService = emailService;
             _unitOfWork = unitOfWork;
+            _cache = cache;
         }
         public async Task<Result<bool>> Handle(ReviewFactoryCommand request, CancellationToken cancellationToken)
         {
@@ -51,6 +54,8 @@ namespace PowerGuard.Application.Features.Admin.Commands.ReviewFactory
             if (result > 0)
             {
                 await _emailService.SendEmailAsync(factory.Manager.Email!, request.IsApproved ? "Factory Approve" : "Factory Rejection", request.IsApproved ? "Congrats! Ur factory has been approved by the admin." : $"Ur Factory has been rejected due to : {request.AdminRemarks}");
+                await _cache.RemoveAsync("ActiveFactoriesList");
+                await _cache.RemoveAsync("FactoriesList");
                 return Result<bool>.Success(true);
             }
 

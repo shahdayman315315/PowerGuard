@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using PowerGuard.Application.Helpers;
 using PowerGuard.Domain.Interfaces;
 using System;
@@ -17,13 +16,13 @@ namespace PowerGuard.Application.Features.Department.Commands.DeleteDepartment
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IMemoryCache _memoryCache;
+        private readonly ICacheService _cache;
 
-        public DeleteDepartmentCommandHandler(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, IMemoryCache memoryCache)
+        public DeleteDepartmentCommandHandler(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor, ICacheService cache)
         {
             _unitOfWork = unitOfWork;
             _httpContextAccessor = httpContextAccessor;
-            _memoryCache = memoryCache;
+            _cache = cache;
         }
         public async Task<Result<bool>> Handle(DeleteDepartmentCommand request, CancellationToken cancellationToken)
         {
@@ -48,7 +47,7 @@ namespace PowerGuard.Application.Features.Department.Commands.DeleteDepartment
             {
                 string cacheKey = $"Departments-Factory: {department.FactoryId}";
 
-                _memoryCache.Remove(cacheKey);
+                await _cache.RemoveAsync(cacheKey);
 
                 return Result<bool>.Success(true, "Department deleted successfully");
             }

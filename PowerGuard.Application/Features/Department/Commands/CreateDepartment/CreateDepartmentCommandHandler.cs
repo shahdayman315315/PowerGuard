@@ -3,7 +3,6 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using PowerGuard.Application.Features.Department.Commands.CreateDepartment;
 using PowerGuard.Application.Helpers;
 using PowerGuard.Domain.Interfaces;
@@ -23,10 +22,10 @@ namespace PowerGuard.Application.Dtos
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IMemoryCache _cache;
+        private readonly ICacheService _cache;
 
         public CreateDepartmentCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IHttpContextAccessor httpContextAccessor,
-            UserManager<ApplicationUser> userManager, IMemoryCache cache)
+            UserManager<ApplicationUser> userManager, ICacheService cache)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -84,7 +83,7 @@ namespace PowerGuard.Application.Dtos
             {
                 string cacheKey = $"Departments-Factory: {factoryId}";
 
-                _cache.Remove(cacheKey);
+                await _cache.RemoveAsync(cacheKey);
 
                 if (request.ManagerId is not null)
                 {

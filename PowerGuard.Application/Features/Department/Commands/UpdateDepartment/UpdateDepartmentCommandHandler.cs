@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Caching.Memory;
 using PowerGuard.Application.Dtos;
 using PowerGuard.Application.Helpers;
 using PowerGuard.Domain.Interfaces;
@@ -19,14 +18,14 @@ namespace PowerGuard.Application.Features.Department.Commands.UpdateDepartment
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IMemoryCache _memorycache;
+        private readonly ICacheService _cache;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UpdateDepartmentCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IMemoryCache memorycache, IHttpContextAccessor httpContextAccessor)
+        public UpdateDepartmentCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICacheService cache, IHttpContextAccessor httpContextAccessor)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _memorycache= memorycache;
+            _cache = cache;
             _httpContextAccessor = httpContextAccessor;
         }
         public async Task<Result<DepartmentDto>> Handle(UpdateDepartmentCommand request, CancellationToken cancellationToken)
@@ -60,7 +59,7 @@ namespace PowerGuard.Application.Features.Department.Commands.UpdateDepartment
             {
                 string cacheKey = $"Departments-Factory: {department.FactoryId}";
 
-                _memorycache.Remove(cacheKey);
+                await _cache.RemoveAsync(cacheKey);
 
                 var departmentDto = _mapper.Map<DepartmentDto>(department);
 

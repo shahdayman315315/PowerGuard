@@ -3,7 +3,6 @@ using AutoMapper.QueryableExtensions;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using PowerGuard.Application.Dtos;
 using PowerGuard.Application.Helpers;
 using PowerGuard.Domain.Interfaces;
@@ -18,13 +17,13 @@ namespace PowerGuard.Application.Features.Department.Queries.GetAllDepartments
 {
     public class GetAllDepartmentsQueryHandler : IRequestHandler<GetAllDepartmentsQuery, Result<IEnumerable<DepartmentDto>>>
     {
-        private readonly IMemoryCache _cache;
+        private readonly ICacheService _cache;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
         public GetAllDepartmentsQueryHandler(IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor
-            , IMemoryCache cache, IMapper mapper)
+            , ICacheService cache, IMapper mapper)
         {
             _httpContextAccessor = httpContextAccessor;
             _cache = cache;
@@ -54,15 +53,13 @@ namespace PowerGuard.Application.Features.Department.Queries.GetAllDepartments
 
             string cacheKey = $"Departments-Factory: {factoryId}";
 
-            if (!_cache.TryGetValue(cacheKey, out IEnumerable<DepartmentDto> departmentsDtos))
+            var departmentsDtos = await _cache.GetAsync<IEnumerable<DepartmentDto>>(cacheKey);
+            
+            if (departmentsDtos == null)
             {
                 departmentsDtos = await _unitOfWork.Departments.Query.Where(d => d.FactoryId == factoryId).ProjectTo<DepartmentDto>(_mapper.ConfigurationProvider).ToListAsync(cancellationToken);
 
-                var cacheOptions = new MemoryCacheEntryOptions()
-               .SetSlidingExpiration(TimeSpan.FromMinutes(30))
-               .SetAbsoluteExpiration(TimeSpan.FromHours(1));
-
-                _cache.Set(cacheKey, departmentsDtos, cacheOptions);
+                await _cache.SetAsync(cacheKey, departmentsDtos, TimeSpan.FromMinutes(60), TimeSpan.FromMinutes(30));
             }
 
             return Result<IEnumerable<DepartmentDto>>.Success(departmentsDtos);
