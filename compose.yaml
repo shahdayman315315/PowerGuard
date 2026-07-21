@@ -11,6 +11,7 @@ services:
 
    depends_on:
      - sqlserver
+     - redis
 
    environment:
        ASPNETCORE_URLS: http://+:8080
@@ -29,6 +30,12 @@ services:
 
    volumes:
     - sqlserver-data:/var/opt/mssql
+
+ redis:
+   image: redis:latest
+   container_name: powerguard-redis
+   ports:
+    - "6379:6379"
 
 volumes:
     sqlserver-data:
